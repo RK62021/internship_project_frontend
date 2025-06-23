@@ -1,0 +1,154 @@
+.button {
+    background-color: #4675D1;
+    padding: 10px 24px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* space between icon and text */
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+  
+  .button:hover {
+    background-color: #355bb0;
+  }
+  
+  .button-icon {
+    display: flex;
+    align-items: center;
+    font-size: 18px; /* adjust icon size if needed */
+  }
+  
+  .button-text {
+    display: inline-block;
+  }
+  
+
+.search-icon {
+    width: 74px;
+    color: white;
+    padding: 10px 31px;
+    background-color: #5856D6;
+}
+.search-div {
+    overflow: hidden;
+    transition: border 0.2s ease;
+    height: 46px;
+    width: 50%;
+    border-radius: 10px;
+  }
+
+
+  /* for filter button */
+  .no-caret::after {                           
+    display: none !important;
+  }
+  .Link{
+    text-decoration: none;
+  }
+
+  .team-toggle-div {
+    align-content: right;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: end;
+    gap: 19px;
+}
+
+.multi-select-tab-btn {
+  border: none;
+  padding: 15px 45px;
+  /* border-radius: 10px; */
+}
+
+.multi-tab-selected {
+  background-color: #FFFFFF;
+  color: black;
+  border-bottom: 5px solid #3399FF;
+  /* box-shadow:1px solid #3399FF  */
+}
+
+.multi-tab-unselected {
+  background-color: #FFFFFF;
+  color: black;
+  border-bottom: none;         /* Tailwind's text-gray-700 */
+}
+
+.seach-dropdown-multitab {
+  position: relative;
+  width: 400px;
+  margin-bottom: 20px;
+}
+
+.task-details-tab {
+  background-color: transparent;
+  padding: 24px 32px;
+  width: 100%;
+  color: black;
+  /* height: 100%; */
+  border-radius: 20px;
+  margin-top: 39px;
+  box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: auto;
+}
+
+.task-details-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: black;
+}
+
+.task-details-content .label {
+  flex: 1;
+  font-weight: 600;
+  font-size: 15px;
+  color: black;
+}
+
+.task-details-content .value {
+  flex: 2;
+  text-align: left;
+}
+
+
+.task-details-content .value,
+.task-details-content .flex {
+  font-size: 14px;
+  font-weight: 500;
+  color: black;
+}
+
+.task-details-tab select {
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  max-width: 240px;
+  font-weight: 500;
+}
+.task-details-tab select:hover {
+  border-color: #0077cc;
+  cursor: pointer;
+}
+
+.label-red {
+  color: red;
+  font-weight: 500;
+}
+
+
+
+
+  

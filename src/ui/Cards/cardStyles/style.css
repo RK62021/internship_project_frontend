@@ -1,0 +1,33 @@
+.card-animate {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-animate:hover {
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  .card-icon{
+    text-align: left;
+    /* border-bottom: 1px solid green; */
+    border-radius: 10px;
+    width: auto;
+    padding: 0px 19px;
+    display: flex;
+  }
+
+  .card-font{
+    font-family: initial;
+  }
+  
+  .card-detail-font {
+    font-family: initial;
+}
+.assign-div {
+  background-color: rgb(182, 222, 236);
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.assign-div:hover {
+  background-color: bisque;
+  cursor: pointer;
+}
