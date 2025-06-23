@@ -7,15 +7,14 @@ import {
   CTooltip,
   CButton,
 } from '@coreui/react'
-import './cardStyles/style.css'
-import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import Loader from '../Loader'
-import ApiUrl from '../../services/apiheaders'
+import axios from 'axios'
 import { cilTrash } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useSelector } from 'react-redux'
+import Loader from '../Loader'
+import ApiUrl from '../../services/apiheaders'
 
 const TaskCard = ({
   color,
@@ -28,18 +27,17 @@ const TaskCard = ({
   assignto,
   OnDeleteTask,
   createdBy,
+  priority,
 }) => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const user = useSelector((state) => state.userType)
 
-  const FirstTimeOpenfun = useCallback(async () => {
+  const handleOpenTask = useCallback(async () => {
     setIsLoading(true)
     try {
-      const Response = await axios.get(
-        `${ApiUrl.User}/task/firsttimeopen?taskId=${OriginalId}`
-      )
-      if (Response.data.statusCode === 200) {
+      const res = await axios.get(`${ApiUrl.User}/task/firsttimeopen?taskId=${OriginalId}`)
+      if (res.data.statusCode === 200) {
         navigate(`/task/${OriginalId}`)
       } else {
         toast.error('Something went wrong...')
@@ -52,82 +50,95 @@ const TaskCard = ({
     }
   }, [navigate, OriginalId])
 
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return 'danger'
+      case 'medium': return 'warning'
+      case 'low': return 'info'
+      default: return 'secondary'
+    }
+  }
+
   return (
     <>
       {isLoading && <Loader />}
 
-      <CCard className="shadow-sm border-1 rounded-4 mb-4 card-animate bg-white h-100 d-flex flex-column">
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center px-4 pt-4 flex-wrap gap-2">
-          <Link
-            className="text-decoration-none"
-            onClick={FirstTimeOpenfun}
-            style={{ cursor: 'pointer' }}
+      <CCard className="border-0 shadow-sm rounded-4 h-100 position-relative card-hover">
+        {/* Delete Icon - Top Right */}
+        {(user === 'Admin' || user === 'SuperAdmin') && (
+          <CButton
+            color="link"
+            size="sm"
+            className="position-absolute top-0 end-0 m-2 p-1"
+            onClick={OnDeleteTask}
           >
-            <h6 className="mb-0 text-primary fw-semibold text-break">
-              Task ID: {id}
-            </h6>
-          </Link>
-          <CBadge color={color} className="px-3 py-1 text-capitalize rounded-pill shadow-sm">
-            {status}
-          </CBadge>
-        </div>
+            <CIcon icon={cilTrash} className="text-danger" size="lg" />
+          </CButton>
+        )}
 
-        {/* Body */}
-        <CCardBody className="pt-3 pb-4 px-4 d-flex flex-column flex-grow-1">
+        <CCardBody className="d-flex flex-column h-100">
+          {/* Task ID */}
+          <div
+            onClick={handleOpenTask}
+            style={{ cursor: 'pointer' }}
+            className="mb-3"
+          >
+            <small className="text-muted">Task ID</small>
+            <h6 className="fw-bold text-primary text-break mb-1">{id}</h6>
+          </div>
+
           {/* Title */}
-          <div className="mb-3">
-            <CTooltip content={taskName} placement="top">
-              <CCardTitle className="h5 fw-bold text-dark text-truncate text-capitalize">
-                {taskName}
-              </CCardTitle>
-            </CTooltip>
-          </div>
+          <CTooltip content={taskName} placement="top">
+            <CCardTitle className="text-dark text-capitalize fw-semibold mb-3 fs-6">
+              {taskName}
+            </CCardTitle>
+          </CTooltip>
 
-          {/* Details Grid */}
-          <div className="row row-cols-1 row-cols-md-2 g-3 mb-3">
-            <div className="col">
-              <div className="mb-2">
-                <small className="text-muted d-block">Assigned To</small>
-                <CBadge color="info" className="px-2 py-1 fs-6 text-white">
-                  {assignto.toUpperCase()}
-                </CBadge>
-              </div>
-              <div className="mb-2">
-                <small className="text-muted d-block">Created Date</small>
-                <span className="fw-medium text-dark">{assignedDate}</span>
-              </div>
+          {/* Status & Priority */}
+          <div className="d-flex flex-row gap-5 mb-3">
+            <div>
+              <small className="text-muted d-block">Status</small>
+              <CBadge color={color} className="rounded-pill px-3 py-1 text-capitalize fw-medium">
+                {status}
+              </CBadge>
             </div>
-
-            <div className="col">
-              <div className="mb-2">
-                <small className="text-muted d-block">Created By</small>
-                <span className="fw-medium text-dark">{createdBy}</span>
-              </div>
-              <div className="mb-2">
-                <small className="text-muted d-block">Target Date</small>
-                <span className="fw-medium text-dark">{completionDate}</span>
-              </div>
+            <div>
+              <small className="text-muted d-block">Severity</small>
+              <CBadge color={getPriorityColor(priority)} className="rounded-pill px-3 py-1 text-capitalize fw-medium">
+                {priority}
+              </CBadge>
             </div>
           </div>
 
-          {/* Footer */}
-          {user === 'Admin' || user === 'SuperAdmin' ? (
-            <div className="mt-auto d-flex justify-content-md-end justify-content-start">
-              <CTooltip content="Delete Task" placement="top">
-                <CButton
-                  color="danger"
-                  size="sm"
-                  variant="outline"
-                  onClick={OnDeleteTask}
-                >
-                  <CIcon icon={cilTrash} className="me-2" /> Delete
-                </CButton>
-              </CTooltip>
+          {/* Dates & Info Grid */}
+          <div className="row row-cols-1 row-cols-md-2 g-2 mb-2">
+            <div className="col">
+              <small className="text-muted d-block">Assigned To</small>
+              <span className="fw-medium text-dark">{assignto?.toUpperCase()}</span>
             </div>
-          ) : null}
+            <div className="col">
+              <small className="text-muted d-block">Created By</small>
+              <span className="fw-medium text-dark">{createdBy}</span>
+            </div>
+            <div className="col">
+              <small className="text-muted d-block">Created On</small>
+              <span className="fw-medium text-dark">{assignedDate}</span>
+            </div>
+            <div className="col">
+              <small className="text-muted d-block">Target Date</small>
+              <span className="fw-medium text-dark">{completionDate}</span>
+            </div>
+          </div>
         </CCardBody>
       </CCard>
+
+      <style jsx>{`
+        .card-hover:hover {
+          transform: scale(1.01);
+          transition: 0.3s ease-in-out;
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
+        }
+      `}</style>
     </>
   )
 }

@@ -80,6 +80,15 @@ const Task = () => {
     fetchTask()
   }, [isTaskAdded])
 
+  // Filter task list by search term
+  const filteredTasks = apiTask.filter((item) =>
+    item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.taskid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.assignto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.priority?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <>
       {isLoading ? (
@@ -119,14 +128,14 @@ const Task = () => {
 
           {/* Task Cards Section */}
           <div className="py-3">
-            {apiTask.length === 0 ? (
+            {filteredTasks.length === 0 ? (
               <div className="d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <h1 style={{ fontSize: '3rem' }}>📭</h1>
                 <h5 className="text-muted mt-2">No tasks found</h5>
               </div>
             ) : (
               <CRow xs={{ cols: 1 }} sm={{ cols: 2 }} md={{ cols: 3 }} lg={{ cols: 4 }} className="g-4">
-                {apiTask.map((item, idx) => {
+                {filteredTasks.map((item, idx) => {
                   const statusColor = taskBadgeColor.find((s) => s.name === item.status)?.color
                   return (
                     <CCol key={idx}>
@@ -144,6 +153,7 @@ const Task = () => {
                         OnDeleteTask={() => deleteTask(item._id)}
                         OnEditTask={() => editTaskFun(item._id)}
                         color={statusColor}
+                        priority={item.priority || 'Medium'}
                       />
                     </CCol>
                   )

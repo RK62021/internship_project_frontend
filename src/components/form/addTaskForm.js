@@ -21,17 +21,13 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
   const isAdminOrSuperAdmin = useIsAdminOrSuperAdmin()
   const isAddForm = name === 'addTask'
   const [Userslist, setUserslist] = useState([])
-  const [isLoading, setisLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const fetchUser = async () => {
     try {
-      const userId = GetLocalStorage('user')?.[0]?.userId;
-
-
-      const response = await axios.get(`${ApiUrl.User}/userlistcustom/?userId=${userId}`)
+      const currentUserId = GetLocalStorage('user')?.[0]?.userId
+      const response = await axios.get(`${ApiUrl.User}/userlistcustom/?userId=${currentUserId}`)
       setUserslist(response?.data?.data || [])
-      console.log('Users fetched successfully:', response.data.data)
-      console.log(Userslist)
     } catch (error) {
       console.error('Failed to fetch users:', error)
     }
@@ -44,10 +40,11 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
   return (
     <Formik
       initialValues={{
-        name: data ? data[0].name : '',
-        description: data ? data[0].details : '',
-        targetdate: data ? formatDateToInput(data[0].targetdate) : '',
-        assignto: data ? data[0].assigntoId : '',
+        name: data?.[0]?.name || '',
+        description: data?.[0]?.details || '',
+        targetdate: data?.[0]?.targetdate ? formatDateToInput(data[0].targetdate) : '',
+        assignto: data?.[0]?.assigntoId || '',
+        priority: data?.[0]?.priority || '',
       }}
       validate={(values) => {
         const errors = {}
@@ -55,27 +52,36 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
         if (!values.description) errors.description = 'Description is required'
         if (!values.assignto) errors.assignto = 'Assign To is required'
         if (!values.targetdate) errors.targetdate = 'Target Date is required'
+        if (!values.priority) errors.priority = 'Priority is required'
         return errors
       }}
       onSubmit={async (values) => {
         try {
-          setisLoading(true)
+          setIsLoading(true)
           const url = isAddForm
             ? `${ApiUrl.User}/task`
-            : `${ApiUrl.User}/task?id=${data[0]._id}`
+            : `${ApiUrl.User}/task?id=${data?.[0]?._id}`
+
           const dateWithTime = TaskInputTimeAndDate(values.targetdate)
-          const finalData = { ...values, createdBy: userId, targetdate: dateWithTime }
-          const Response = isAddForm
+          const finalData = {
+            ...values,
+            createdBy: userId,
+            targetdate: dateWithTime,
+            priority: values.priority || 'Medium',
+          }
+
+          const response = isAddForm
             ? await axios.post(url, finalData)
             : await axios.put(url, finalData)
-          if (Response.status === 200) {
+
+          if (response.status === 200) {
             isTaskAdded()
             closePopup()
           }
         } catch (err) {
           console.error(err)
         } finally {
-          setisLoading(false)
+          setIsLoading(false)
         }
       }}
     >
@@ -84,15 +90,17 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
           {isLoading && <Loader />}
           <div className="container p-3">
             <div
-              className="mx-auto bg-white rounded p-4 "
+              className="mx-auto bg-white rounded p-4"
               style={{ maxWidth: '600px', backdropFilter: 'blur(5px)' }}
             >
               <h4 className="mb-4 text-center">{formName}</h4>
+              
+              <hr className="my-4 border-2 border-dark rounded opacity-100 custom-hr" />
+
               <form noValidate onSubmit={handleSubmit}>
+                {/* Task Name */}
                 <div className="mb-3">
-                  <label htmlFor="name" className="form-label">
-                    Task Name
-                  </label>
+                  <label htmlFor="name" className="form-label">Task Name</label>
                   <input
                     type="text"
                     name="name"
@@ -108,10 +116,9 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
                   )}
                 </div>
 
+                {/* Description */}
                 <div className="mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Description
-                  </label>
+                  <label htmlFor="description" className="form-label">Description</label>
                   <textarea
                     name="description"
                     id="description"
@@ -127,10 +134,9 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
                   )}
                 </div>
 
+                {/* Assign To */}
                 <div className="mb-3">
-                  <label htmlFor="assignto" className="form-label">
-                    Assign To
-                  </label>
+                  <label htmlFor="assignto" className="form-label">Assign To</label>
                   <select
                     name="assignto"
                     id="assignto"
@@ -151,10 +157,30 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
                   )}
                 </div>
 
+                {/* Priority */}
                 <div className="mb-3">
-                  <label htmlFor="targetdate" className="form-label">
-                    Target Date
-                  </label>
+                  <label htmlFor="priority" className="form-label">Priority</label>
+                  <select
+                    name="priority"
+                    id="priority"
+                    className={`form-select ${errors.priority && touched.priority ? 'is-invalid' : ''}`}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.priority}
+                  >
+                    <option value="">Please Select</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                  {errors.priority && touched.priority && (
+                    <div className="invalid-feedback">{errors.priority}</div>
+                  )}
+                </div>
+
+                {/* Target Date */}
+                <div className="mb-3">
+                  <label htmlFor="targetdate" className="form-label">Target Date</label>
                   <input
                     type="date"
                     name="targetdate"
@@ -169,6 +195,7 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
                   )}
                 </div>
 
+                {/* Submit */}
                 <div className="d-grid mt-4">
                   <button type="submit" className="btn btn-primary btn-lg">
                     Submit

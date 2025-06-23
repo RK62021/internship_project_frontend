@@ -31,13 +31,13 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
     assigntoId: '',
     statusId: '',
     details: '',
-    priorityTagId: '',
+    priority: '',
   })
   const [InitialTask, setInitialTask] = useState({
     assigntoId: '',
     statusId: '',
     details: '',
-    priorityTagId: '',
+    priority: '',
   })
 
   const [Remarks, setRemarks] = useState('')
@@ -49,11 +49,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
   const [TaskDetailsNotes, setTaskDetailsNotes] = useState(null)
   const [notesList, setNotesList] = useState([])
 
-  const PriorityTag = [
-    { name: 'High', color: 'danger', userId: 'high' },
-    { name: 'Medium', color: 'warning', userId: 'medium' },
-    { name: 'Low', color: 'success', userId: 'low' },
-  ]
+  const PriorityTag = ['High', 'Medium', 'Low']
 
   const fetchUser = async () => {
     try {
@@ -97,7 +93,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
     UpdatedTask.assigntoId !== InitialTask.assigntoId ||
     UpdatedTask.statusId !== InitialTask.statusId ||
     UpdatedTask.details !== InitialTask.details ||
-    UpdatedTask.priorityTagId !== InitialTask.priorityTagId
+    UpdatedTask.priority !== InitialTask.priority
 
   const handleCancel = () => {
     setUpdatedTask(InitialTask)
@@ -113,6 +109,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
       remarks: openRemarks ? Remarks : '',
       id: data[0]?.taskid,
       updatedBy: userId,
+      priority: UpdatedTask.priority || 'Medium',
     }
     const Response = await axios.put(`${ApiUrl.User}/task`, UpdatedTasks)
     if (Response.data.statusCode === 200) navigate('/task')
@@ -144,7 +141,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
         assigntoId: data[0].assigntoId || '',
         statusId: data[0].statusId || '',
         details: data[0].details || '',
-        priorityTagId: data[0].priorityTagId || '',
+        priority: data[0].priority || '',
       }
       setUpdatedTask(initial)
       setInitialTask(initial)
@@ -200,11 +197,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
         </button>
       </div>
 
-      <div
-        key={selectedTabs}
-        className="tab-content card p-4 shadow-sm fade-in"
-        style={{ minHeight: '400px' }}
-      >
+      <div key={selectedTabs} className="tab-content card p-4 shadow-sm fade-in" style={{ minHeight: '400px' }}>
         {selectedTabs === 1 && (
           <>
             <div className="row mb-3">
@@ -254,16 +247,17 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
                 </select>
               </div>
               <div className="col-md-4">
-                <label>Priority Tag</label>
+                <label>Priority</label>
                 <select
-                  name="priorityTagId"
-                  value={UpdatedTask.priorityTagId}
+                  name="priority"
+                  value={UpdatedTask.priority}
                   onChange={handleChange}
                   className="form-select"
                 >
-                  {PriorityTag.map((t) => (
-                    <option key={t.userId} value={t.userId}>
-                      {t.name}
+                  <option value="">Select Priority</option>
+                  {PriorityTag.map((tag) => (
+                    <option key={tag} value={tag}>
+                      {tag}
                     </option>
                   ))}
                 </select>
