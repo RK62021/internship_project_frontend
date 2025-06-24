@@ -35,6 +35,15 @@ const DashboardTaskCard = ({
     }
   }, [navigate, OriginalId])
 
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return 'danger'
+      case 'medium': return 'warning'
+      case 'low': return 'info'
+      default: return 'secondary'
+    }
+  }
+
   return (
     <>
       {isLoading && <Loader />}
@@ -52,36 +61,40 @@ const DashboardTaskCard = ({
         }}
         onClick={FirstTimeOpenfun}
       >
-        {/* Header: Task ID & Badges */}
-        <div className="d-flex justify-content-between align-items-start flex-wrap">
-          <div className="text-primary fw-semibold small mb-2">
+        {/* Header: Task ID & Info */}
+        <div className="d-flex justify-content-between align-items-start flex-wrap mb-2">
+          <div className="text-primary fw-semibold medium mb-1">
             <i className="bi bi-hash me-1"></i>Task ID: {id}
           </div>
-          <div className="d-flex flex-wrap gap-4">
-            <span className={`badge bg-${color} text-capitalize fw-semibold`}>
-              Status: {status}
-            </span>
-            <span className="badge bg-secondary text-capitalize fw-semibold">
-              Severity: {priority}
-            </span>
-          </div>
         </div>
 
-        {/* Body: Title */}
-        <div className="mt-2">
+
+        {/* Title */}
+        <div className="mb-2">
           <div className="fw-semibold text-dark fs-7">
             <span className="text-muted small">Title:</span>{' '}
-            <span className="ms-1">{taskName?.toUpperCase()}</span>
+            <span className="ms-1">{taskName?.toUpperCase() || 'N/A'}</span>
+          </div>
+        </div>
+        {/* Status and Priority Side by Side */}
+        <div className="d-flex justify-content-between flex-wrap gap-2 mb-2">
+          <div className="text-capitalize fw-semibold">
+            <span className="text-muted me-1">Status:</span>
+            <span className={`text-${color}`}>{status || 'N/A'}</span>
+          </div>
+          <div className="text-capitalize fw-semibold">
+            <span className="text-muted me-1">Severity:</span>
+            <span className={`text-${getPriorityColor(priority)}`}>{priority || 'N/A'}</span>
           </div>
         </div>
 
-        {/* Footer Info */}
-        <div className="row mt-2">
-          <div className="col-12 col-md-6 mb-2">
+        {/* Assigned & Date */}
+        <div className="row">
+          <div className="col-12 col-sm-6 mb-2">
             <small className="text-muted">Assigned To</small>
             <div className="fw-medium text-dark text-truncate">{assignto || 'N/A'}</div>
           </div>
-          <div className="col-12 col-md-6 mb-2">
+          <div className="col-12 col-sm-6 mb-2">
             <small className="text-muted">Target Date</small>
             <div className="fw-medium text-dark text-truncate">{completionDate || 'N/A'}</div>
           </div>

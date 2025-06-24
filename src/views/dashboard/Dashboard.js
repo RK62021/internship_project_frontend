@@ -4,8 +4,8 @@ import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { UTC_TO_IND_FORMAT } from '../../utils/dateConvert'
-import ApiUrl from '../../services/apiheaders'
 
+import ApiUrl from '../../services/apiheaders'
 import DashboardCard from '../../components/dashboard/dashboardCard'
 import DashboardTaskCard from '../../ui/Cards/dashBoardTaskCard'
 import UserTaskTable from './dashboardTable'
@@ -35,7 +35,9 @@ const Dashboard = () => {
     setIsLoading(true)
     try {
       const endpoint = type === 'my' ? 'mytask' : 'teamtask'
-      const res = await axios.get(`${ApiUrl.User}/task/${endpoint}?userId=${user_id}&userType=${userType}`)
+      const res = await axios.get(
+        `${ApiUrl.User}/task/${endpoint}?userId=${user_id}&userType=${userType}`,
+      )
       if (res.status === 200) setApiTask(res.data.data)
     } catch {
       toast.error('Something went wrong...')
@@ -47,7 +49,9 @@ const Dashboard = () => {
   const fetchTaskCount = async () => {
     setIsLoading(true)
     try {
-      const res = await axios.get(`${ApiUrl.User}/taskcountstatuswise?userId=${user_id}&userType=${userType}`)
+      const res = await axios.get(
+        `${ApiUrl.User}/taskcountstatuswise?userId=${user_id}&userType=${userType}`,
+      )
       if (res.status === 200) updateTaskCount(res.data.data)
     } catch {
       toast.error('Error fetching task count')
@@ -61,8 +65,8 @@ const Dashboard = () => {
     const colorMap = {
       'Not Started': 'info',
       'In Progress': 'warning',
-      'Completed': 'success',
-      'OverDue': 'danger',
+      Completed: 'success',
+      OverDue: 'danger',
     }
 
     const sorted = desiredOrder.map((status) => {
@@ -98,43 +102,60 @@ const Dashboard = () => {
     <>
       {isLoading && <Loader />}
 
-      <div className="container-fluid py-3">
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h4 className="fw-bold">📋 Task Dashboard</h4>
+      <div className="container-fluid py-4 px-3 px-md-4">
+        {/* Dashboard Title */}
+        <div className="mb-4 border-bottom pb-2">
+          <h3 className="fw-bold mb-1">📋 Task Dashboard</h3>
+          <p className="text-muted">Track and manage your team’s work effectively</p>
         </div>
 
         {/* Task Summary Cards */}
-        <div className="row g-4 mb-4">
-          {taskCount.map((card, idx) => (
-            <div className="col-sm-6 col-lg-4 col-xxl-3" key={idx}>
-              <DashboardCard data={card} />
-            </div>
-          ))}
-        </div>
+        <section className="mb-5">
+          <h5 className="mb-3 fw-semibold">🔢 Task Status Summary</h5>
+          <div className="row g-4">
+            {taskCount.map((card, idx) => (
+              <div className="col-sm-6 col-lg-4 col-xxl-3" key={idx}>
+                <DashboardCard data={card} />
+              </div>
+            ))}
+          </div>
+        </section>
 
-        {/* Tabs for My Tasks / Team Tasks */}
-        <ul className="nav nav-tabs mb-3">
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === 'my' ? 'active' : ''}`}
-              onClick={() => handleTabChange('my')}
-            >
-              My Tasks
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === 'team' ? 'active' : ''}`}
-              onClick={() => handleTabChange('team')}
-            >
-              My Team Tasks
-            </button>
-          </li>
-        </ul>
+              {/* Monthly Chart */}
+              {userType !== 'User' && (
+                <section className="mt-5">
+                  <div className="w-100 h-100 overflow-hidden">
+                    <div className="p-3 bg-white rounded">
+                      <div className="chart-wrapper" style={{ height: '100%', minHeight: '300px' }}>
+                        <MainChart />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
 
-        {/* Task Cards */}
-        <div className="py-3">
+        {/* My / Team Tasks */}
+        <section className="mb-5 mt-4">
+          <h5 className="fw-semibold mb-3">🗂️ Task Overview</h5>
+          <ul className="nav nav-pills mb-3">
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'my' ? 'active' : ''}`}
+                onClick={() => handleTabChange('my')}
+              >
+                My Tasks
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'team' ? 'active' : ''}`}
+                onClick={() => handleTabChange('team')}
+              >
+                My Team Tasks
+              </button>
+            </li>
+          </ul>
+
           {apiTask.length === 0 ? (
             <div className="text-center text-muted py-5 fw-semibold fs-5">
               🚫 No {activeTab === 'team' ? 'Team' : 'My'} Tasks Found
@@ -142,7 +163,9 @@ const Dashboard = () => {
           ) : (
             <div className="row g-4">
               {apiTask.map((item, idx) => {
-                const statusColor = taskBadgeColor.find((color) => color.name === item.status)?.color
+                const statusColor = taskBadgeColor.find(
+                  (color) => color.name === item.status,
+                )?.color
                 return (
                   <div className="col-md-6 col-lg-3" key={idx}>
                     <DashboardTaskCard
@@ -158,39 +181,39 @@ const Dashboard = () => {
                       priority={item.priority}
                       taskId={item._id}
                       color={statusColor}
-                    />
+                      />
                   </div>
                 )
               })}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Team Task Table */}
-        {userType !== 'User' && (
-          <div className="mt-5">
-            <UserTaskTable />
-          </div>
-        )}
 
-        {/* Recent Tasks */}
-        <div className="mt-5">
-          <RecentTaskSection />
-        </div>
+        {/* Team Table + Recent Tasks Side-by-Side */}
+        <section className="mt-5">
+          <div className="row align-items-stretch">
+            {userType !== 'User' && (
+              <div className="col-lg-7 mb-4 mb-lg-0 d-flex flex-column">
+                <div className="h-100 border rounded p-3 bg-white d-flex flex-column">
+                  {/* <h5 className="fw-semibold mb-3">👥 Team Task Table</h5> */}
+                  <div className="flex-grow-1 overflow-auto">
+                    <UserTaskTable />
+                  </div>
+                </div>
+              </div>
+            )}
 
-        {/* Task Status Chart */}
-        {userType !== 'User' && (
-          <div className="mt-5">
-            <h5 className="fw-bold mb-3">📊 Monthly Task Status Overview</h5>
-            <div className="card shadow-sm border-0">
-              <div className="card-body">
-                <div className="chart-wrapper" style={{ minHeight: '300px', overflowX: 'auto' }}>
-                  <MainChart />
+            <div className="col-lg-5 d-flex flex-column">
+              <div className="h-100 border rounded p-3 shadow-sm bg-white d-flex flex-column">
+                <h5 className="fw-semibold mb-3">🕒 Recently Updated Tasks</h5>
+                <div className="flex-grow-1 overflow-hidden">
+                  <RecentTaskSection />
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </section>
       </div>
     </>
   )

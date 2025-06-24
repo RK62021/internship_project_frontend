@@ -1,16 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { CChartBar } from '@coreui/react-chartjs'
+import { CChartPie } from '@coreui/react-chartjs'
 import { getStyle } from '@coreui/utils'
-import {
-  CCard,
-  CCardBody,
-  CRow,
-  CCol,
-  CFormSelect,
-  CSpinner,
-} from '@coreui/react'
 import axios from 'axios'
-import ApiUrl from '../../services/apiheaders' // adjust path to your service file
+import ApiUrl from '../../services/apiheaders'
 
 const STATUS_COLORS = {
   Completed: getStyle('--cui-success'),
@@ -19,58 +11,67 @@ const STATUS_COLORS = {
   OverDue: getStyle('--cui-warning'),
 }
 
+const PRIORITY_COLORS = {
+  High: getStyle('--cui-danger'),
+  Medium: getStyle('--cui-warning'),
+  Low: getStyle('--cui-info'),
+}
+
 const FILTER_OPTIONS = ['day', 'week', 'month']
 
 const MainChart = ({ userId }) => {
-  const [labels, setLabels] = useState([])
-  const [datasets, setDatasets] = useState([])
+  const [statusChart, setStatusChart] = useState({ labels: [], datasets: [] })
+  const [priorityChart, setPriorityChart] = useState({ labels: [], datasets: [] })
+  const [filter, setFilter] = useState('month')
   const [loading, setLoading] = useState(false)
-  const [filter, setFilter] = useState('month') // default
   const [error, setError] = useState('')
 
   const fetchChartData = async (selectedFilter) => {
     setLoading(true)
     try {
       const res = await axios.get(`${ApiUrl.User}/task-status-chart`, {
-        params: {
-          userId,
-          filter: selectedFilter,
-        },
+        params: { userId, filter: selectedFilter },
       })
 
       const response = res.data?.data || []
 
-      const tempLabels = []
-      const statusMap = {
-        Completed: [],
-        'In Progress': [],
-        'Not Started': [],
-        OverDue: [],
-      }
+      const statusTotals = { Completed: 0, 'In Progress': 0, 'Not Started': 0, OverDue: 0 }
+      const priorityTotals = { High: 0, Medium: 0, Low: 0 }
 
       response.forEach((entry) => {
-        tempLabels.push(entry.label)
-        Object.keys(statusMap).forEach((status) => {
-          statusMap[status].push(entry.statuses[status] || 0)
-        })
+        Object.keys(statusTotals).forEach(
+          (key) => (statusTotals[key] += entry.statuses?.[key] || 0)
+        )
+        Object.keys(priorityTotals).forEach(
+          (key) => (priorityTotals[key] += entry.severities?.[key] || 0)
+        )
       })
 
-      const chartDatasets = Object.entries(statusMap).map(([status, data]) => ({
-        label: status,
-        backgroundColor: STATUS_COLORS[status],
-        data,
-        barPercentage: 0.8,
-        categoryPercentage: 0.6,
-      }))
+      const statusLabels = Object.keys(statusTotals)
+      const statusData = statusLabels.map((s) => statusTotals[s])
+      const statusColors = statusLabels.map((s) => STATUS_COLORS[s])
 
-      setLabels(tempLabels)
-      setDatasets(chartDatasets)
+      const priorityLabels = Object.keys(priorityTotals)
+      const priorityData = priorityLabels.map((s) => priorityTotals[s])
+      const priorityColors = priorityLabels.map((s) => PRIORITY_COLORS[s])
+
+      setStatusChart({
+        labels: statusLabels,
+        datasets: [{ data: statusData, backgroundColor: statusColors, hoverOffset: 8 }],
+      })
+
+      setPriorityChart({
+        labels: priorityLabels,
+        datasets: [{ data: priorityData, backgroundColor: priorityColors, hoverOffset: 8 }],
+      })
+
       setError('')
     } catch (err) {
       console.error(err)
       setError('Failed to load chart data')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -78,92 +79,92 @@ const MainChart = ({ userId }) => {
   }, [filter])
 
   return (
-    <CCard className="mb-4">
-      <CCardBody>
-        <CRow className="mb-3">
-          <CCol>
-            <h5 style={{ fontWeight: 'bold' }}>Task Status Overview</h5>
-          </CCol>
-          <CCol className="text-end" xs="auto">
-            <CFormSelect
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              style={{ width: '150px', display: 'inline-block' }}
-            >
-              {FILTER_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                </option>
-              ))}
-            </CFormSelect>
-          </CCol>
-        </CRow>
+    <div className="mb-5">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+          <h5 className="fw-bold mb-1">📊 Task Insights Overview</h5>
+          <small className="text-muted">Status & priority distribution ({filter})</small>
+        </div>
+        <div>
+          <select
+            className="form-select form-select-sm"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            style={{ minWidth: '130px' }}
+          >
+            {FILTER_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt.charAt(0).toUpperCase() + opt.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="text-center py-5">
-            <CSpinner color="primary" />
+      {/* Charts or Loading/Error */}
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+        </div>
+      ) : error ? (
+        <p className="text-danger text-center">{error}</p>
+      ) : (
+        <div className="row g-4 overflow-hidden">
+          {/* Task Status Chart */}
+          <div className="col-12 col-md-6 d-flex flex-column">
+            <div className="p-3 border rounded h-100">
+              <h6 className="fw-semibold mb-3 text-center">🧮 Task Status Distribution</h6>
+              <div className="flex-grow-1 d-flex justify-content-center align-items-center" style={{ maxHeight: '260px' }}>
+                <CChartPie
+                  data={statusChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          color: getStyle('--cui-body-color'),
+                          boxWidth: 16,
+                        },
+                      },
+                    },
+                  }}
+                  style={{ height: '100%', width: '85%' }}
+                />
+              </div>
+            </div>
           </div>
-        ) : error ? (
-          <p className="text-danger">{error}</p>
-        ) : (
-          <CChartBar
-            style={{ height: '350px' }}
-            data={{
-              labels,
-              datasets,
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: true,
-                  position: 'bottom',
-                  labels: {
-                    color: getStyle('--cui-body-color'),
-                  },
-                },
-                title: {
-                  display: true,
-                  text:
-                    filter === 'day'
-                      ? 'Today\'s Task Status'
-                      : filter === 'week'
-                      ? 'Task Status Over the Week'
-                      : 'Task Status Over the Last 6 Months',
-                  color: getStyle('--cui-body-color'),
-                  font: {
-                    size: 16,
-                    weight: 'bold',
-                  },
-                },
-              },
-              scales: {
-                x: {
-                  stacked: true,
-                  ticks: {
-                    color: getStyle('--cui-body-color'),
-                  },
-                  grid: {
-                    color: getStyle('--cui-border-color-translucent'),
-                  },
-                },
-                y: {
-                  stacked: true,
-                  beginAtZero: true,
-                  ticks: {
-                    color: getStyle('--cui-body-color'),
-                  },
-                  grid: {
-                    color: getStyle('--cui-border-color-translucent'),
-                  },
-                },
-              },
-            }}
-          />
-        )}
-      </CCardBody>
-    </CCard>
+
+          {/* Task Priority Chart */}
+          <div className="col-12 col-md-6 d-flex flex-column">
+            <div className="p-3 border rounded h-100 border-start-md">
+              <h6 className="fw-semibold mb-3 text-center">🎯 Task Priority Breakdown</h6>
+              <div className="flex-grow-1 d-flex justify-content-center align-items-center" style={{ maxHeight: '260px' }}>
+                <CChartPie
+                  data={priorityChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          color: getStyle('--cui-body-color'),
+                          boxWidth: 16,
+                        },
+                      },
+                    },
+                  }}
+                  style={{ height: '100%', width: '85%' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

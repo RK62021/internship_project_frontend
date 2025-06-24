@@ -1,6 +1,5 @@
 import {
   CButton,
-  CCard,
   CCardBody,
   CNav,
   CNavItem,
@@ -11,6 +10,16 @@ import FilterButton from '../../../ui/buttons/filterButton'
 import axios from 'axios'
 import ApiUrl from '../../../services/apiheaders'
 import { useSelector } from 'react-redux'
+import DumpReport from './DumpReport'
+
+// ✅ Optional: Extract DumpReport to its own file for clarity
+// const DumpReport = () => (
+//   <div className="py-4">
+//     <h5 className="fw-bold">🗑️ Dump Report</h5>
+//     <p className="text-muted">This section can include deleted or archived task data.</p>
+//     {/* Add your Dump Report logic/table here */}
+//   </div>
+// )
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState('list')
@@ -69,10 +78,19 @@ const Reports = () => {
             Analytic
           </CNavLink>
         </CNavItem>
+        <CNavItem>
+          <CNavLink
+            active={activeTab === 'dump'}
+            onClick={() => setActiveTab('dump')}
+            style={{ cursor: 'pointer' }}
+          >
+            Dump Report
+          </CNavLink>
+        </CNavItem>
       </CNav>
 
-      {/* Report Table */}
-      {/* <CCard className="border-0 shadow-sm"> */}
+      {/* Tab Content Switching */}
+      {activeTab === 'list' && (
         <CCardBody>
           <div className="table-responsive">
             <table className="table align-middle table-bordered text-center">
@@ -113,7 +131,16 @@ const Reports = () => {
             </table>
           </div>
         </CCardBody>
-      {/* </CCard> */}
+      )}
+
+      {activeTab === 'analytic' && (
+        <div className="py-4">
+          <h5 className="fw-bold">📊 Analytics View</h5>
+          <p className="text-muted">Integrate your chart or graph components here (e.g., Bar, Pie).</p>
+        </div>
+      )}
+
+      {activeTab === 'dump' && <DumpReport />}
     </div>
   )
 }

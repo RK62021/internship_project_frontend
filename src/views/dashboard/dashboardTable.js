@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import {
-  CCard,
-  CCardBody,
   CTable,
   CTableHead,
   CTableRow,
@@ -48,11 +46,7 @@ const UserTaskTable = () => {
     try {
       setLoading(true)
       const res = await axios.get(`${ApiUrl.User}/user-task-report`, {
-        params: {
-          userType,
-          userId,
-          teamId,
-        },
+        params: { userType, userId, teamId },
       })
 
       if (res.status === 200) {
@@ -74,32 +68,33 @@ const UserTaskTable = () => {
   }, [])
 
   return (
-    <CCard className="border-0 shadow-sm">
-      <CCardBody className="p-4">
-        {loading && <Loader />}
-        <h5 className="fw-bold mb-4">📊 Team-wise Task Breakdown</h5>
+    <div className="px-1 px-md-2">
+      {loading && <Loader />}
 
-        {teams.length === 0 && !loading && (
-          <div className="text-center text-muted py-4">No teams found.</div>
-        )}
+      <h5 className="fw-bold mb-4">📊 Team-wise Task Breakdown</h5>
 
-        {teams.map((team, idx) => (
-          <div key={team._id} className="mb-4">
-            <div
-              className="d-flex justify-content-between align-items-center bg-light p-3 rounded border shadow-sm"
-              style={{ cursor: 'pointer', fontWeight: 'bold' }}
-              onClick={() => fetchTeamUserTasks(team._id, idx)}
-            >
-              <span>👥 {team.name}</span>
-              <span style={{ fontSize: '18px' }}>{openIndex === idx ? '▲' : '▼'}</span>
-            </div>
+      {teams.length === 0 && !loading && (
+        <div className="text-center text-muted py-4">No teams found.</div>
+      )}
 
-            {openIndex === idx && (
-              <>
-                {teamUserTasks[team._id]?.length === 0 ? (
-                  <div className="text-muted text-center py-3">No users in this team.</div>
-                ) : (
-                  <CTable hover striped responsive className="mt-3 border">
+      {teams.map((team, idx) => (
+        <div key={team._id} className="mb-4">
+          <div
+            className="d-flex justify-content-between align-items-center bg-light p-3 rounded border"
+            style={{ cursor: 'pointer', fontWeight: 'bold' }}
+            onClick={() => fetchTeamUserTasks(team._id, idx)}
+          >
+            <span>👥 {team.name}</span>
+            <span style={{ fontSize: '18px' }}>{openIndex === idx ? '▲' : '▼'}</span>
+          </div>
+
+          {openIndex === idx && (
+            <>
+              {teamUserTasks[team._id]?.length === 0 ? (
+                <div className="text-muted text-center py-3">No users in this team.</div>
+              ) : (
+                <div className="table-responsive mt-3">
+                  <CTable hover striped responsive bordered>
                     <CTableHead color="primary">
                       <CTableRow>
                         <CTableHeaderCell scope="col">#</CTableHeaderCell>
@@ -126,11 +121,7 @@ const UserTaskTable = () => {
                           </CTableDataCell>
                           <CTableDataCell className="text-center">
                             <Link to={`/dashboard/pending-tasks/${user._id || index}`}>
-                              <CBadge
-                                color="danger"
-                                shape="rounded-pill"
-                                style={{ cursor: 'pointer' }}
-                              >
+                              <CBadge color="danger" shape="rounded-pill" style={{ cursor: 'pointer' }}>
                                 {user.pendingTasks}
                               </CBadge>
                             </Link>
@@ -139,13 +130,13 @@ const UserTaskTable = () => {
                       ))}
                     </CTableBody>
                   </CTable>
-                )}
-              </>
-            )}
-          </div>
-        ))}
-      </CCardBody>
-    </CCard>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ))}
+    </div>
   )
 }
 

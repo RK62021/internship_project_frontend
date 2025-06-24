@@ -1,10 +1,7 @@
-// ui/Cards/RecentTaskSection.js
-
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { CCard, CCardBody, CCardHeader, CBadge } from '@coreui/react'
 import ApiUrl from '../../services/apiheaders'
-import { UTC_TO_IND_FORMAT } from '../../utils/dateConvert'
+import { formatDateToDMYHM } from '../../utils/dateConvert'
 
 const statusColors = {
   Completed: 'success',
@@ -20,34 +17,45 @@ const RecentTaskSection = () => {
   const [recentTasks, setRecentTasks] = useState([])
 
   useEffect(() => {
-    axios.get(`${ApiUrl.User}/recent-task`)
-      .then(res => setRecentTasks(res.data.data || []))
+    axios
+      .get(`${ApiUrl.User}/recent-task`)
+      .then((res) => setRecentTasks(res.data.data || []))
       .catch(() => setRecentTasks([]))
   }, [])
 
   return (
-    <CCard className="mt-4 shadow-sm">
-      <CCardHeader>
-        <h5 className="mb-0 fw-bold">🕒 Recent Task Status (Last 2 Days)</h5>
-      </CCardHeader>
-      <CCardBody>
-        {recentTasks.length === 0 ? (
-          <p className="text-muted mb-0">No recent tasks found.</p>
-        ) : (
-          <ul className="list-group">
-            {recentTasks.map(task => (
-              <li key={task._id} className="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>{task.name}</strong> <small className="text-muted">({task.taskid})</small><br />
-                  <small className="text-muted">Updated: {UTC_TO_IND_FORMAT(task.updatedAt)}</small>
+    <section className="mt-4">
+      {recentTasks.length === 0 ? (
+        <div className="text-muted text-center py-4 border rounded bg-light">
+          No recent tasks found.
+        </div>
+      ) : (
+        <div className="row g-3">
+          {recentTasks.slice(0, 5).map((task) => (
+            <div key={task._id} className="col-12">
+              <div className="card shadow-sm border-0 rounded-3">
+                <div
+                  className="card-body d-flex justify-content-between align-items-center flex-wrap"
+                  style={{ overflowX: 'hidden' }}
+                >
+                  <div className="pe-3 text-truncate" style={{ maxWidth: '75%' }}>
+                    <h6 className="fw-semibold mb-1 text-truncate">{task.name}</h6>
+                    <div className="text-muted small text-truncate">
+                      #{task.taskid} • Updated: {formatDateToDMYHM(task.updatedDate)}
+                    </div>
+                  </div>
+                  <span
+                    className={`badge bg-${statusColors[task.Taskstatus] || 'dark'} rounded-pill px-3 py-2 text-capitalize text-nowrap`}
+                  >
+                    {task.Taskstatus}
+                  </span>
                 </div>
-                <CBadge color={statusColors[task.status] || 'dark'}>{task.status}</CBadge>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CCardBody>
-    </CCard>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 
