@@ -166,7 +166,7 @@ function TaskAttachment({ taskId }) {
                   <div>
                     <div className="fw-bold text-break">{file.filename || 'Unnamed File'}</div>
                     <small className="text-muted">
-                      Uploaded by: {file.uploadedByName || 'N/A'}<br />
+                      Uploaded by: {file.uploadedBy || 'N/A'}<br />
                       On: {formatDateToDMYHM(file.uploadedDate)}
                     </small>
                   </div>
