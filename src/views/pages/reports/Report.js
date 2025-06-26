@@ -71,20 +71,20 @@ const Reports = () => {
         </CNavItem>
         <CNavItem>
           <CNavLink
-            active={activeTab === 'analytic'}
-            onClick={() => setActiveTab('analytic')}
-            style={{ cursor: 'pointer' }}
-          >
-            Analytic
-          </CNavLink>
-        </CNavItem>
-        <CNavItem>
-          <CNavLink
             active={activeTab === 'dump'}
             onClick={() => setActiveTab('dump')}
             style={{ cursor: 'pointer' }}
           >
             Dump Report
+          </CNavLink>
+        </CNavItem>
+        <CNavItem>
+          <CNavLink
+            active={activeTab === 'analytic'}
+            onClick={() => setActiveTab('analytic')}
+            style={{ cursor: 'pointer' }}
+          >
+            Analytic
           </CNavLink>
         </CNavItem>
       </CNav>
