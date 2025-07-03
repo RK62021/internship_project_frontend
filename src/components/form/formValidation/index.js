@@ -21,9 +21,9 @@ export const UserFormValidate = (values, EditUserData) => {
     errors.designation = 'Designation is required'
   }
 
-  if (!values.department) {
-    errors.department = 'Department is required'
-  }
+  // if (!values.department) {
+  //   errors.department = 'Department is required'
+  // }
 
   if (!values.reportingto) {
     errors.reportingto = 'Reporting is required'

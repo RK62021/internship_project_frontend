@@ -1,69 +1,82 @@
-import CIcon from '@coreui/icons-react';
-import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
-import Button from '../buttons';
-import { cilPlus } from '@coreui/icons';
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import { formatDateToDMYHM } from '../../utils/dateConvert';
-import { useParams } from 'react-router-dom';
-import ApiUrl from '../../services/apiheaders';
-import { toast } from 'react-toastify';
+import CIcon from '@coreui/icons-react'
+import axios from 'axios'
+import { useEffect, useRef, useState } from 'react'
+import Button from '../buttons'
+import { cilPlus } from '@coreui/icons'
+import { FaTrash } from 'react-icons/fa'
+import { formatDateToDMYHM } from '../../utils/dateConvert'
+import ApiUrl from '../../services/apiheaders'
+import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
 
-const ToggleDiv = ({ TeamMembers, data, index, isOpen, onToggle }) => {
-  const { id } = useParams();
-  const childRef = useRef();
-  const [TeamMember, setTeamMember] = useState([]);
-  const [isLoading, setisLoading] = useState(false);
-  const [isUserPopup, setIsUserPopup] = useState(false);
-  const [userList, setUserList] = useState([]);
-  const [selectedUser, setSelectedUser] = useState('');
+const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam }) => {
+  const user_id = useSelector((state) => state.userId)
+  const [userList, setUserList] = useState([])
+  const [selectedUser, setSelectedUser] = useState('')
+  const [isUserPopup, setIsUserPopup] = useState(false)
 
-  const handleClick = () => {
-    childRef.current?.focusInput();
-  };
+  // ⏺️ Filter out users already in team
+  useEffect(() => {
+   if (allUsers?.length >= 0 && TeamMembers !== undefined) {
+  const memberIds = new Set((TeamMembers || []).map((member) => member._id))
+  const availableUsers = allUsers.filter((user) => !memberIds.has(user._id))
+  setUserList(availableUsers)
+}
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(`${ApiUrl.User}/all`);
-      if (response.status === 200) {
-        setUserList(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching users', error);
-    }
-  };
+  }, [allUsers, TeamMembers])
 
   const handleAddTeamMember = async () => {
     if (!selectedUser) {
-      alert('Please select a user.');
-      return;
+      toast.warning('Please select a user.')
+      return
     }
 
     try {
-      const response = await axios.post(`${ApiUrl.Team}/addusertoteam`, {
-        userId: selectedUser,
-        teamId: data._id,
-      });
+      const response = await axios.post(`${ApiUrl.Team}/member`, {
+        userid: selectedUser,
+        departmentid: data._id,
+        addedby: user_id,
+      })
 
-      if (response.data.statusCode === 200) {
-        toast.success('User added to team');
-        setIsUserPopup(false);
-        setSelectedUser('');
-        onToggle();
+      if (response.status === 200 || response.data.success === true) {
+        toast.success('User added to team')
+        setIsUserPopup(false)
+        setSelectedUser('')
+       await refreshTeam();
       } else {
-        toast.error('Failed to add user');
+        toast.error('Failed to add user')
       }
     } catch (err) {
-      toast.error('Error adding user');
+      toast.error('Error adding user')
     }
-  };
+  }
 
-  useEffect(() => {
-    // fetchUsers();
-  }, []);
+  const handleRemoveTeamMember = async (userId) => {
+    if (!userId) {
+      toast.warning('Invalid user ID')
+      return
+    }
+
+    try {
+      const response = await axios.post(`${ApiUrl.Team}/removeuserfromteam`, {
+        userId: userId,
+        teamId: data._id,
+      })
+
+      if (response.status === 200 || response.data.success === true) {
+        toast.success('User removed from team')
+        await refreshTeam();
+      } else {
+        toast.error('Failed to remove user')
+      }
+    } catch (error) {
+      toast.error('Error removing user')
+    }
+  }
 
   return (
     <div style={{ border: '1px solid #ccc', padding: '10px', backgroundColor: '#FFFFFF' }}>
+      {/* Accordion Header */}
       <div
         style={{
           display: 'flex',
@@ -78,24 +91,22 @@ const ToggleDiv = ({ TeamMembers, data, index, isOpen, onToggle }) => {
       </div>
 
       {isOpen && (
-        <div >
-          <div className="team-toggle-div">
-            {/* <div
-              style={{ width: '211px', height: '30px', textAlign: 'right' }}
-              onClick={handleClick}
-            >
-              <Button
-                name="Add Team Member"
-                icon={<CIcon icon={cilPlus} />}
-                onClick={() => setIsUserPopup(true)}
-              />
-            </div> */}
+        <div>
+          {/* Add Member Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <Button
+              name="Add Member"
+              icon={<CIcon icon={cilPlus} />}
+              onClick={() => setIsUserPopup(true)}
+            />
           </div>
 
+          {/* Team Members Table */}
           <div style={{ overflowX: 'auto', marginTop: '10px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#e0e0e0', textAlign: 'left' }}>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Action</th>
                   <th style={{ padding: '8px', border: '1px solid #ddd' }}>User</th>
                   <th style={{ padding: '8px', border: '1px solid #ddd' }}>Email</th>
                   <th style={{ padding: '8px', border: '1px solid #ddd' }}>Mobile</th>
@@ -108,13 +119,24 @@ const ToggleDiv = ({ TeamMembers, data, index, isOpen, onToggle }) => {
               <tbody>
                 {TeamMembers?.map((team, idx) => (
                   <tr key={idx}>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleRemoveTeamMember(team._id)}
+                        title="Remove Member"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.fullName}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.email}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.mobile}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.departmentName}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.designationName}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{team.reportingToName}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDateToDMYHM(team?.addedDate)}</td>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                      {formatDateToDMYHM(team?.addedDate)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -123,6 +145,7 @@ const ToggleDiv = ({ TeamMembers, data, index, isOpen, onToggle }) => {
         </div>
       )}
 
+      {/* Add Member Modal */}
       {isUserPopup && (
         <div className="modal show d-block" tabIndex="-1">
           <div className="modal-dialog modal-dialog-centered">
@@ -152,27 +175,15 @@ const ToggleDiv = ({ TeamMembers, data, index, isOpen, onToggle }) => {
                 </select>
               </div>
               <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsUserPopup(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleAddTeamMember}
-                >
-                  Add
-                </button>
+                <button className="btn btn-secondary" onClick={() => setIsUserPopup(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleAddTeamMember}>Add</button>
               </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ToggleDiv;
+export default ToggleDiv

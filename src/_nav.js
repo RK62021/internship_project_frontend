@@ -57,12 +57,12 @@ const _nav = [
     to: '/report',
     icon: <CIcon icon={cilSpreadsheet} customClassName="nav-icon" />,
   },
-  // {
-  //   component: CNavItem,
-  //   name: 'Settings',
-  //   to: '/settings',
-  //   icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
-  // },
+  {
+    component: CNavItem,
+    name: 'Settings',
+    to: '/settings',
+    icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
+  },
   // {
   //   component: CNavItem,
   //   name: 'Colors',

@@ -52,10 +52,10 @@ const Reports = () => {
           <h2 className="fw-bold text-dark">Reports</h2>
           <p className="text-muted">View and generate task reports</p>
         </div>
-        <div className="col-12 col-md-6 d-flex flex-wrap justify-content-md-end gap-2">
+        {/* <div className="col-12 col-md-6 d-flex flex-wrap justify-content-md-end gap-2">
           <FilterButton filterData={['today', 'upcoming', 'dead']} active={true} />
           <CButton color="info" className="text-white">Generate Report</CButton>
-        </div>
+        </div> */}
       </div>
 
       {/* Navigation Tabs */}

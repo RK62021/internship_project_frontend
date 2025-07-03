@@ -27,6 +27,7 @@ const Settings = () => {
   const [newDesignation, setNewDesignation] = useState('')
   const [userEmailToUpdate, setUserEmailToUpdate] = useState('')
   const [newRole, setNewRole] = useState('')
+  const [newDepartment, setNewDepartment] = useState('') // new
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -103,7 +104,7 @@ const Settings = () => {
         createdBy: userId,
       })
 
-      if (response.data.statusCode === 200) {
+      if (response.status === 200 || response.data.success === true) {
         toast.success('Designation created successfully')
         setNewDesignation('')
       } else {
@@ -111,6 +112,31 @@ const Settings = () => {
       }
     } catch (err) {
       toast.error('Error creating designation')
+      console.error(err)
+    }
+  }
+
+  const handleAddDepartment = async () => {
+    if (!newDepartment.trim()) {
+      toast.error('Please enter a department name')
+      return
+    }
+
+    try {
+      const userId = GetLocalStorage('user')[0]?.userId
+      const response = await axios.post(`${ApiUrl.User}/create-department`, {
+        name: newDepartment,
+        createdBy: userId,
+      })
+
+      if (response.data.statusCode === 200) {
+        toast.success('Department created successfully')
+        setNewDepartment('')
+      } else {
+        toast.warn(response.data.message || 'Error creating department')
+      }
+    } catch (err) {
+      toast.error('Error creating department')
       console.error(err)
     }
   }
@@ -265,54 +291,77 @@ const Settings = () => {
       </div>
 
       {userType === 'SuperAdmin' && (
-        <div className="row mt-4">
-          <div className="col-12">
-            <div className="card p-4 shadow-sm">
-              <h3>Manage Designations & Roles</h3>
-              <div className="row">
-                <div className="col-md-6 mb-4">
-                  <h5>Add New Designation</h5>
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="New designation title"
-                      value={newDesignation}
-                      onChange={(e) => setNewDesignation(e.target.value)}
-                    />
-                    <button className="btn btn-success" onClick={handleAddDesignation}>
-                      Add
-                    </button>
-                  </div>
-                </div>
+  <div className="row mt-4">
+    <div className="col-12">
+      <div className="card p-4 shadow-sm">
+        <h3>Manage Departments, Designations & Roles</h3>
+        <div className="row">
+          {/* Left Side - Department & Designation */}
+          <div className="col-md-6">
+            {/* Department */}
+            <div className="mb-4">
+              <h5>Add Department</h5>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Department name"
+                  value={newDepartment}
+                  onChange={(e) => setNewDepartment(e.target.value)}
+                />
+                <button className="btn btn-success" onClick={handleAddDepartment}>
+                  Add
+                </button>
+              </div>
+            </div>
 
-                <div className="col-md-6 mb-4">
-                  <h5>Change User Role</h5>
-                  <input
-                    type="email"
-                    className="form-control mb-2"
-                    placeholder="User email"
-                    value={userEmailToUpdate}
-                    onChange={(e) => setUserEmailToUpdate(e.target.value)}
-                  />
-                  <select
-                    className="form-select mb-2"
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value)}
-                  >
-                    <option value="">Select role</option>
-                    <option value="Admin">Admin</option>
-                    <option value="User">User</option>
-                  </select>
-                  <button className="btn btn-primary w-100" onClick={handleRoleChangeSubmit}>
-                    Update Role
-                  </button>
-                </div>
+            {/* Designation */}
+            <div className="mb-4">
+              <h5>Add Designation</h5>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Designation title"
+                  value={newDesignation}
+                  onChange={(e) => setNewDesignation(e.target.value)}
+                />
+                <button className="btn btn-success" onClick={handleAddDesignation}>
+                  Add
+                </button>
               </div>
             </div>
           </div>
+
+          {/* Right Side - Change Role */}
+          <div className="col-md-6">
+            <h5>Change User Role</h5>
+            <input
+              type="email"
+              className="form-control mb-2"
+              placeholder="User email"
+              value={userEmailToUpdate}
+              onChange={(e) => setUserEmailToUpdate(e.target.value)}
+            />
+            <select
+              className="form-select mb-2"
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+            >
+              <option value="">Select role</option>
+              <option value="Admin">Admin</option>
+              <option value="User">User</option>
+            </select>
+            <button className="btn btn-primary w-100" onClick={handleRoleChangeSubmit}>
+              Update Role
+            </button>
+          </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   )
 }

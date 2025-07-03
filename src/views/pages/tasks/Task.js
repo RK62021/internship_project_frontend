@@ -34,7 +34,7 @@ const Task = () => {
   const [showDeletePopup, setShowDeletePopup] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [active, setActive] = useState('today')
+  const [active, setActive] = useState("") // <- Default: No filter
   const [deleteTaskId, setDeleteTaskId] = useState('')
   const [showEditTask, setShowEditTask] = useState(false)
 
@@ -57,9 +57,7 @@ const Task = () => {
 
   const fetchTask = async () => {
     setIsLoading(true)
-    const res = await axios.get(
-      `${ApiUrl.User}/task?userId=${user_id}&userType=${userType}&assignToId=null`
-    )
+    const res = await axios.get(`${ApiUrl.User}/task?userId=${user_id}&userType=${userType}&assignToId=null`)
     if (res.status === 200) {
       setApiTask(res.data.data || [])
     }
@@ -80,14 +78,46 @@ const Task = () => {
     fetchTask()
   }, [isTaskAdded])
 
-  // Filter task list by search term
-  const filteredTasks = apiTask.filter((item) =>
-    item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item?.taskid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item?.assignto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item?.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item?.priority?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredTasks = apiTask.filter((item) => {
+    const term = searchTerm.toLowerCase()
+    const matchesSearch =
+      item?.name?.toLowerCase().includes(term) ||
+      item?.taskid?.toLowerCase().includes(term) ||
+      item?.assignto?.toLowerCase().includes(term) ||
+      item?.status?.toLowerCase().includes(term) ||
+      item?.priority?.toLowerCase().includes(term)
+
+    const createdDate = item?.createdDate ? new Date(item.createdDate) : null
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    let matchesFilter = true
+
+    if (createdDate) {
+      const taskDate = new Date(createdDate)
+      taskDate.setHours(0, 0, 0, 0)
+
+      if (active === 'today') {
+        matchesFilter = taskDate.getTime() === today.getTime()
+      } else if (active === 'yesterday') {
+        const yesterday = new Date(today)
+        yesterday.setDate(today.getDate() - 1)
+        matchesFilter = taskDate.getTime() === yesterday.getTime()
+      } else if (active === 'week') {
+        const weekStart = new Date(today)
+        weekStart.setDate(today.getDate() - today.getDay()) // Sunday
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekStart.getDate() + 6)
+        matchesFilter = taskDate >= weekStart && taskDate <= weekEnd
+      } else if (active === 'month') {
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+        matchesFilter = taskDate >= monthStart && taskDate <= monthEnd
+      }
+    }
+
+    return matchesSearch && matchesFilter
+  })
 
   return (
     <>
@@ -108,7 +138,11 @@ const Task = () => {
               />
             </div>
             <div className="d-flex gap-2">
-              <FilterButton filterData={['today', 'upcoming', 'dead']} active={active} />
+              <FilterButton
+                filterData={['today', 'yesterday', 'week', 'month']}
+                active={active}
+                onFilterChange={(val) => setActive(val)}
+              />
               <CButton color="primary" onClick={() => setIsTaskPopup(true)}>
                 <CIcon icon={cilPlus} className="me-2" />
                 Add Task

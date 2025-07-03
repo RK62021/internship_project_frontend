@@ -11,6 +11,8 @@ import {
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import ApiUrl from '../../../services/apiheaders'
+import ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
 
 const DumpReport = () => {
   const [filters, setFilters] = useState({
@@ -21,8 +23,8 @@ const DumpReport = () => {
     status: '',
   })
 
-  const [allResults, setAllResults] = useState([])  // full data from backend
-  const [results, setResults] = useState([])         // filtered frontend data
+  const [allResults, setAllResults] = useState([])
+  const [results, setResults] = useState([])
   const [Teams, setTeams] = useState([])
 
   const priorities = ['High', 'Medium', 'Low']
@@ -47,7 +49,6 @@ const DumpReport = () => {
     const updatedFilters = { ...filters, [name]: value }
     setFilters(updatedFilters)
 
-    // Re-apply frontend filters only if dropdown values change
     if (['team', 'priority', 'status'].includes(name)) {
       applyFrontendFilters(allResults, updatedFilters)
     }
@@ -111,10 +112,69 @@ const DumpReport = () => {
     return 'secondary'
   }
 
+  const handleExport = async () => {
+    if (!results.length) {
+      toast.warn('No data to export.')
+      return
+    }
+
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Dump Report')
+
+    worksheet.columns = [
+      { header: '#', key: 'index', width: 5 },
+      { header: 'Task ID', key: 'taskId', width: 20 },
+      { header: 'Task Name', key: 'taskName', width: 30 },
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Status', key: 'status', width: 20 },
+      { header: 'Priority', key: 'priority', width: 15 },
+      { header: 'Team', key: 'team', width: 20 },
+    ]
+
+    results.forEach((item, index) => {
+      worksheet.addRow({
+        index: index + 1,
+        taskId: item.taskId,
+        taskName: item.taskName,
+        date: item.date,
+        status: item.status,
+        priority: item.priority,
+        team: item.team,
+      })
+    })
+
+    // Style header
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+      cell.alignment = { horizontal: 'center' }
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD3D3D3' },
+      }
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+
+    saveAs(blob, `Dump_Report_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   return (
     <div className="py-4">
-      <h5 className="fw-bold mb-3">🗑️ Dump Report</h5>
-      <p className="text-muted">Filter and view deleted or discarded tasks</p>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 className="fw-bold mb-1">🗑️ Dump Report</h5>
+          <p className="text-muted mb-0">Filter and view deleted or discarded tasks</p>
+        </div>
+        {results.length > 0 && (
+          <CButton color="success" onClick={handleExport}>
+            ⬇️ Export Report
+          </CButton>
+        )}
+      </div>
 
       {/* Filter Section */}
       <CForm className="mb-4">
@@ -146,9 +206,7 @@ const DumpReport = () => {
             <CFormSelect name="team" value={filters.team} onChange={handleChange}>
               <option value="">All</option>
               {Teams.map((team) => (
-                <option key={team._id} value={team.name}>
-                  {team.name}
-                </option>
+                <option key={team._id} value={team.name}>{team.name}</option>
               ))}
             </CFormSelect>
           </CCol>

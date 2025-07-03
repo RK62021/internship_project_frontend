@@ -8,15 +8,29 @@ import Loader from '../../../ui/Loader/index.js'
 import { useSelector } from 'react-redux'
 
 const Team = () => {
+  const userType = useSelector((state) => state.userType)
+  const reduxUserId = useSelector((state) => state.userId)
+
   const [Teams, setTeams] = useState([])
   const [openIndex, setOpenIndex] = useState(null)
   const [isOpenAddTeam, setisOpenAddTeam] = useState(false)
   const [TeamName, SetTeamName] = useState('')
   const [isLoading, setisLoading] = useState(false)
-  const [TeamMembers, setTeamMembers] = useState([])
-  const user = useSelector((state) => state.userType)
+  const [allUsers, setAllUsers] = useState([])
+  const [teamUsersMap, setTeamUsersMap] = useState({}) // key: teamId, value: teamMembers[]
 
-  const fetchTeam = async () => {
+  const fetchAllUsers = async () => {
+    try {
+      const response = await axios.get(`${ApiUrl.User}/all`)
+      if (response.status === 200) {
+        setAllUsers(response.data.data || [])
+      }
+    } catch (error) {
+      toast.error('Failed to fetch users')
+    }
+  }
+
+  const fetchTeam = async (openLast = false) => {
     setisLoading(true)
     try {
       const Response = await axios.get(`${ApiUrl.Team}`)
@@ -24,52 +38,47 @@ const Team = () => {
         const teamList = Response.data.data
         setTeams(teamList)
 
-        // Open first team by default
+        const map = {}
+        for (const team of teamList) {
+          const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${team._id}`)
+          map[team._id] = res.data?.data || []
+        }
+        setTeamUsersMap(map)
+
         if (teamList.length > 0) {
-          await OnToggleFun(0, teamList[0]._id)
+          const defaultIndex = openLast ? teamList.length - 1 : 0
+          setOpenIndex(defaultIndex)
         }
       }
     } catch (err) {
-      toast.error("Failed to load teams")
+      toast.error('Failed to load teams')
     } finally {
       setisLoading(false)
     }
   }
 
-  const OnToggleFun = async (idx, teamid) => {
-    try {
-      // If switching to a new team
-      if (openIndex !== idx) {
-        setisLoading(true)
-        const Response = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${teamid}`)
-        if (Response.data.statusCode === 200) {
-          setTeamMembers(Response.data.data)
-          setOpenIndex(idx)
-        } else {
-          toast.error("Something went wrong...")
-        }
-        setisLoading(false)
-      } else {
-        // Close the currently open panel
-        setOpenIndex(null)
-      }
-    } catch (err) {
-      toast.error("Something went wrong...")
-      setisLoading(false)
-    }
+  const refreshTeamUsers = async (teamId) => {
+    const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${teamId}`)
+    setTeamUsersMap((prev) => ({
+      ...prev,
+      [teamId]: res.data?.data || [],
+    }))
+    fetchAllUsers() // update available user list across all teams
   }
 
   useEffect(() => {
+    fetchAllUsers()
     fetchTeam()
   }, [])
 
   const handleAddTeam = async (e) => {
     e.preventDefault()
+    const userId = reduxUserId || JSON.parse(localStorage.getItem('user'))?.[0]?.userId
+
+    if (!userId) return toast.error('User not identified')
+
     try {
       setisLoading(true)
-      const user = JSON.parse(localStorage.getItem('user'))
-      const userId = user[0]?.userId
-
       const Response = await axios.post(`${ApiUrl.Team}`, {
         name: TeamName,
         createdBy: userId,
@@ -79,15 +88,12 @@ const Team = () => {
         toast.success(Response.data.message)
         setisOpenAddTeam(false)
         SetTeamName('')
-        fetchTeam()
-      } else if (Response.data.statusCode === 409) {
-        toast.warn(Response.data.message)
+        await fetchTeam(true)
       } else {
-        toast.error("Something went wrong...")
+        toast.error(Response.data.message || 'Something went wrong...')
       }
-    } catch (error) {
-      console.error("Error adding team:", error)
-      toast.error("Something went wrong...")
+    } catch {
+      toast.error('Something went wrong...')
     } finally {
       setisLoading(false)
     }
@@ -101,9 +107,9 @@ const Team = () => {
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
             <h2>Team</h2>
-            <p>Manage and track team tasks</p>
+            <p className="text-muted">Manage and track team tasks</p>
           </div>
-          {(user === 'Admin' || user === 'SuperAdmin') && (
+          {(userType === 'Admin' || userType === 'SuperAdmin') && (
             <button className="btn btn-primary" onClick={() => setisOpenAddTeam(true)}>
               <i className="bi bi-plus-circle me-2"></i> New Team
             </button>
@@ -117,8 +123,10 @@ const Team = () => {
                 data={team}
                 index={idx}
                 isOpen={openIndex === idx}
-                onToggle={() => OnToggleFun(idx, team._id)}
-                TeamMembers={openIndex === idx ? TeamMembers : []}
+                onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
+                TeamMembers={teamUsersMap[team._id] || []}
+                allUsers={allUsers}
+                refreshTeam={() => refreshTeamUsers(team._id)}
               />
             </div>
           ))}
@@ -132,15 +140,16 @@ const Team = () => {
             className="bg-white p-4 rounded"
             style={{ maxWidth: '500px', width: '100%' }}
           >
-            <h5 className="mb-3">Create new Team</h5>
+            <h5 className="mb-3">Create New Team</h5>
             <div className="mb-3">
               <label htmlFor="teamname" className="form-label">Team Name</label>
               <input
                 type="text"
-                name="teamname"
+                id="teamname"
                 className="form-control"
-                onChange={(e) => SetTeamName(e.target.value)}
                 value={TeamName}
+                onChange={(e) => SetTeamName(e.target.value)}
+                required
               />
             </div>
             <button type="submit" className="btn btn-success w-100">
