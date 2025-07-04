@@ -76,8 +76,7 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
     }
   }
 
-  const handleToggleActive = async (e) => {
-    e?.preventDefault()
+  const handleToggleActive = async () => {
     if (toggling) return
     setToggling(true)
     try {
@@ -127,17 +126,12 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
                 role="switch"
                 id={`toggle-${data.userId}`}
                 checked={isActive}
-                onChange={(e) => handleToggleActive(e)}
+                onChange={handleToggleActive}
                 disabled={toggling}
               />
               <label className="form-check-label" htmlFor={`toggle-${data.userId}`}>
                 {isActive ? 'Active' : 'Inactive'}
               </label>
-              {toggling && (
-                <div className="spinner-border spinner-border-sm ms-2" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              )}
             </div>
           ) : (
             <span className="fw-medium small">{isActive ? 'Active' : 'Inactive'}</span>
