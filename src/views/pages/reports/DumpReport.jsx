@@ -143,7 +143,6 @@ const DumpReport = () => {
       })
     })
 
-    // Style header
     worksheet.getRow(1).eachCell((cell) => {
       cell.font = { bold: true }
       cell.alignment = { horizontal: 'center' }
@@ -164,16 +163,22 @@ const DumpReport = () => {
 
   return (
     <div className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      {/* Header and Buttons */}
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
           <h5 className="fw-bold mb-1">🗑️ Dump Report</h5>
           <p className="text-muted mb-0">Filter and view deleted or discarded tasks</p>
         </div>
-        {results.length > 0 && (
-          <CButton color="success" onClick={handleExport}>
-            ⬇️ Export Report
+        <div className="d-flex gap-2 flex-wrap">
+          <CButton color="primary" onClick={handleSearch}>
+            🔍 See Results
           </CButton>
-        )}
+          {results.length > 0 && (
+            <CButton color="success" onClick={handleExport}>
+              ⬇️ Export Report
+            </CButton>
+          )}
+        </div>
       </div>
 
       {/* Filter Section */}
@@ -229,12 +234,6 @@ const DumpReport = () => {
                 <option key={i} value={s}>{s}</option>
               ))}
             </CFormSelect>
-          </CCol>
-
-          <CCol md={12} className="d-flex justify-content-end mt-2">
-            <CButton color="primary" onClick={handleSearch}>
-              🔍 See Results
-            </CButton>
           </CCol>
         </CRow>
       </CForm>

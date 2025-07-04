@@ -11,15 +11,10 @@ import axios from 'axios'
 import ApiUrl from '../../../services/apiheaders'
 import { useSelector } from 'react-redux'
 import DumpReport from './DumpReport'
-
-// ✅ Optional: Extract DumpReport to its own file for clarity
-// const DumpReport = () => (
-//   <div className="py-4">
-//     <h5 className="fw-bold">🗑️ Dump Report</h5>
-//     <p className="text-muted">This section can include deleted or archived task data.</p>
-//     {/* Add your Dump Report logic/table here */}
-//   </div>
-// )
+import ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
+import { toast } from 'react-toastify'
+import Analytics from './Analytics'
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState('list')
@@ -44,6 +39,52 @@ const Reports = () => {
     fetchReport()
   }, [])
 
+  const handleExportListReport = async () => {
+    if (!RepoerData.length) {
+      toast.warn('No report data to export.')
+      return
+    }
+
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Report List')
+
+    worksheet.columns = [
+      { header: '#', key: 'index', width: 5 },
+      { header: 'User', key: 'name', width: 20 },
+      { header: 'Department', key: 'department', width: 20 },
+      { header: 'Designation', key: 'designation', width: 20 },
+      { header: 'Completed', key: 'completedTasks', width: 15 },
+      { header: 'In Progress', key: 'pendingTasks', width: 15 },
+      { header: 'Not Started', key: 'notStartedTasks', width: 15 },
+      { header: 'Discarded', key: 'Discard', width: 15 },
+      { header: 'Total', key: 'totalTasks', width: 10 },
+    ]
+
+    RepoerData.forEach((item, idx) => {
+      worksheet.addRow({
+        index: idx + 1,
+        ...item,
+      })
+    })
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+      cell.alignment = { horizontal: 'center' }
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD3D3D3' },
+      }
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+
+    saveAs(blob, `Report_List_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   return (
     <div className="container-fluid px-3">
       {/* Header */}
@@ -52,10 +93,6 @@ const Reports = () => {
           <h2 className="fw-bold text-dark">Reports</h2>
           <p className="text-muted">View and generate task reports</p>
         </div>
-        {/* <div className="col-12 col-md-6 d-flex flex-wrap justify-content-md-end gap-2">
-          <FilterButton filterData={['today', 'upcoming', 'dead']} active={true} />
-          <CButton color="info" className="text-white">Generate Report</CButton>
-        </div> */}
       </div>
 
       {/* Navigation Tabs */}
@@ -89,9 +126,18 @@ const Reports = () => {
         </CNavItem>
       </CNav>
 
-      {/* Tab Content Switching */}
+      {/* Report List Tab */}
       {activeTab === 'list' && (
         <CCardBody>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="fw-bold mb-0">📋 Report List</h5>
+            {RepoerData.length > 0 && (
+              <CButton color="success" onClick={handleExportListReport}>
+                ⬇️ Export Report
+              </CButton>
+            )}
+          </div>
+
           <div className="table-responsive">
             <table className="table align-middle table-bordered text-center">
               <thead className="table-light">
@@ -110,7 +156,9 @@ const Reports = () => {
               <tbody>
                 {RepoerData?.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-muted">No data available</td>
+                    <td colSpan="9" className="text-muted">
+                      No data available
+                    </td>
                   </tr>
                 ) : (
                   RepoerData.map((item, idx) => (
@@ -133,14 +181,11 @@ const Reports = () => {
         </CCardBody>
       )}
 
-      {activeTab === 'analytic' && (
-        <div className="py-4">
-          <h5 className="fw-bold">📊 Analytics View</h5>
-          <p className="text-muted">Integrate your chart or graph components here (e.g., Bar, Pie).</p>
-        </div>
-      )}
-
+      {/* Dump Report Tab */}
       {activeTab === 'dump' && <DumpReport />}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytic' && <Analytics />}
     </div>
   )
 }

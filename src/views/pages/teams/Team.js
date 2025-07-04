@@ -17,8 +17,10 @@ const Team = () => {
   const [TeamName, SetTeamName] = useState('')
   const [isLoading, setisLoading] = useState(false)
   const [allUsers, setAllUsers] = useState([])
-  const [teamUsersMap, setTeamUsersMap] = useState({}) // key: teamId, value: teamMembers[]
+  const [teamUsersMap, setTeamUsersMap] = useState({})
+  const [teamLoadingMap, setTeamLoadingMap] = useState({})
 
+  // Fetch all users
   const fetchAllUsers = async () => {
     try {
       const response = await axios.get(`${ApiUrl.User}/all`)
@@ -30,24 +32,19 @@ const Team = () => {
     }
   }
 
-  const fetchTeam = async (openLast = false) => {
+  // Fetch teams and open the first toggle by default
+  const fetchTeams = async () => {
     setisLoading(true)
     try {
-      const Response = await axios.get(`${ApiUrl.Team}`)
-      if (Response.status === 200) {
-        const teamList = Response.data.data
+      const response = await axios.get(`${ApiUrl.Team}`)
+      if (response.status === 200) {
+        const teamList = response.data.data || []
         setTeams(teamList)
 
-        const map = {}
-        for (const team of teamList) {
-          const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${team._id}`)
-          map[team._id] = res.data?.data || []
-        }
-        setTeamUsersMap(map)
-
         if (teamList.length > 0) {
-          const defaultIndex = openLast ? teamList.length - 1 : 0
-          setOpenIndex(defaultIndex)
+          const firstTeamId = teamList[0]._id
+          setOpenIndex(0)
+          await handleToggle(0, firstTeamId) // open and fetch data
         }
       }
     } catch (err) {
@@ -57,40 +54,59 @@ const Team = () => {
     }
   }
 
+  // Handle toggle click with lazy load
+  const handleToggle = async (idx, teamId) => {
+    if (!teamUsersMap[teamId]) {
+      setTeamLoadingMap(prev => ({ ...prev, [teamId]: true }))
+      try {
+        const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${teamId}`)
+        setTeamUsersMap(prev => ({
+          ...prev,
+          [teamId]: res.data?.data || []
+        }))
+      } catch {
+        toast.error('Failed to load team members')
+      } finally {
+        setTeamLoadingMap(prev => ({ ...prev, [teamId]: false }))
+      }
+    }
+    setOpenIndex(prev => (prev === idx ? null : idx))
+  }
+
+  // Refresh members of a single team
   const refreshTeamUsers = async (teamId) => {
     const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${teamId}`)
     setTeamUsersMap((prev) => ({
       ...prev,
       [teamId]: res.data?.data || [],
     }))
-    fetchAllUsers() // update available user list across all teams
   }
 
   useEffect(() => {
     fetchAllUsers()
-    fetchTeam()
+    fetchTeams()
   }, [])
 
+  // Handle team creation
   const handleAddTeam = async (e) => {
     e.preventDefault()
     const userId = reduxUserId || JSON.parse(localStorage.getItem('user'))?.[0]?.userId
-
     if (!userId) return toast.error('User not identified')
 
     try {
       setisLoading(true)
-      const Response = await axios.post(`${ApiUrl.Team}`, {
+      const res = await axios.post(`${ApiUrl.Team}`, {
         name: TeamName,
         createdBy: userId,
       })
 
-      if (Response.data.statusCode === 200) {
-        toast.success(Response.data.message)
+      if (res.data.statusCode === 200) {
+        toast.success(res.data.message)
         setisOpenAddTeam(false)
         SetTeamName('')
-        await fetchTeam(true)
+        await fetchTeams()
       } else {
-        toast.error(Response.data.message || 'Something went wrong...')
+        toast.error(res.data.message || 'Something went wrong...')
       }
     } catch {
       toast.error('Something went wrong...')
@@ -118,15 +134,16 @@ const Team = () => {
 
         <div className="row">
           {Teams?.map((team, idx) => (
-            <div className="col-12 mb-3" key={idx}>
+            <div className="col-12 mb-3" key={team._id}>
               <ToggleDiv
                 data={team}
                 index={idx}
                 isOpen={openIndex === idx}
-                onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
+                onToggle={() => handleToggle(idx, team._id)}
                 TeamMembers={teamUsersMap[team._id] || []}
                 allUsers={allUsers}
                 refreshTeam={() => refreshTeamUsers(team._id)}
+                isTeamLoading={teamLoadingMap[team._id] || false}
               />
             </div>
           ))}

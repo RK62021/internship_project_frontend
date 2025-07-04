@@ -4,6 +4,7 @@ import { getStyle } from '@coreui/utils'
 import axios from 'axios'
 import ApiUrl from '../../services/apiheaders'
 
+// Color definitions
 const STATUS_COLORS = {
   Completed: getStyle('--cui-success'),
   'In Progress': getStyle('--cui-info'),
@@ -19,9 +20,14 @@ const PRIORITY_COLORS = {
 
 const FILTER_OPTIONS = ['day', 'week', 'month']
 
+// Helper: Check if all data points are 0
+const isChartEmpty = (dataArray = []) => {
+  return dataArray.every((value) => value === 0)
+}
+
 const MainChart = ({ userId }) => {
-  const [statusChart, setStatusChart] = useState({ labels: [], datasets: [] })
-  const [priorityChart, setPriorityChart] = useState({ labels: [], datasets: [] })
+  const [statusChart, setStatusChart] = useState(null)
+  const [priorityChart, setPriorityChart] = useState(null)
   const [filter, setFilter] = useState('month')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -55,15 +61,27 @@ const MainChart = ({ userId }) => {
       const priorityData = priorityLabels.map((s) => priorityTotals[s])
       const priorityColors = priorityLabels.map((s) => PRIORITY_COLORS[s])
 
-      setStatusChart({
-        labels: statusLabels,
-        datasets: [{ data: statusData, backgroundColor: statusColors, hoverOffset: 8 }],
-      })
+      setStatusChart(
+        isChartEmpty(statusData)
+          ? null
+          : {
+              labels: statusLabels,
+              datasets: [
+                { data: statusData, backgroundColor: statusColors, hoverOffset: 8 },
+              ],
+            }
+      )
 
-      setPriorityChart({
-        labels: priorityLabels,
-        datasets: [{ data: priorityData, backgroundColor: priorityColors, hoverOffset: 8 }],
-      })
+      setPriorityChart(
+        isChartEmpty(priorityData)
+          ? null
+          : {
+              labels: priorityLabels,
+              datasets: [
+                { data: priorityData, backgroundColor: priorityColors, hoverOffset: 8 },
+              ],
+            }
+      )
 
       setError('')
     } catch (err) {
@@ -115,24 +133,31 @@ const MainChart = ({ userId }) => {
           <div className="col-12 col-md-6 d-flex flex-column">
             <div className="p-3 border rounded h-100">
               <h6 className="fw-semibold mb-3 text-center">🧮 Task Status Distribution</h6>
-              <div className="flex-grow-1 d-flex justify-content-center align-items-center" style={{ maxHeight: '260px' }}>
-                <CChartPie
-                  data={statusChart}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: 'bottom',
-                        labels: {
-                          color: getStyle('--cui-body-color'),
-                          boxWidth: 16,
+              <div
+                className="flex-grow-1 d-flex justify-content-center align-items-center"
+                style={{ maxHeight: '260px', minHeight: '150px' }}
+              >
+                {statusChart ? (
+                  <CChartPie
+                    data={statusChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            color: getStyle('--cui-body-color'),
+                            boxWidth: 16,
+                          },
                         },
                       },
-                    },
-                  }}
-                  style={{ height: '100%', width: '85%' }}
-                />
+                    }}
+                    style={{ height: '100%', width: '85%' }}
+                  />
+                ) : (
+                  <p className="text-muted">No data to show in graph</p>
+                )}
               </div>
             </div>
           </div>
@@ -141,24 +166,31 @@ const MainChart = ({ userId }) => {
           <div className="col-12 col-md-6 d-flex flex-column">
             <div className="p-3 border rounded h-100 border-start-md">
               <h6 className="fw-semibold mb-3 text-center">🎯 Task Priority Breakdown</h6>
-              <div className="flex-grow-1 d-flex justify-content-center align-items-center" style={{ maxHeight: '260px' }}>
-                <CChartPie
-                  data={priorityChart}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: 'bottom',
-                        labels: {
-                          color: getStyle('--cui-body-color'),
-                          boxWidth: 16,
+              <div
+                className="flex-grow-1 d-flex justify-content-center align-items-center"
+                style={{ maxHeight: '260px', minHeight: '150px' }}
+              >
+                {priorityChart ? (
+                  <CChartPie
+                    data={priorityChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            color: getStyle('--cui-body-color'),
+                            boxWidth: 16,
+                          },
                         },
                       },
-                    },
-                  }}
-                  style={{ height: '100%', width: '85%' }}
-                />
+                    }}
+                    style={{ height: '100%', width: '85%' }}
+                  />
+                ) : (
+                  <p className="text-muted">No data to show in graph</p>
+                )}
               </div>
             </div>
           </div>
