@@ -43,6 +43,7 @@ const _nav = [
     name: 'Team',
     to: '/team',
     icon: <CIcon icon={cilGroup} customClassName="nav-icon" />,
+    usertype:['Admin','Manager','SuperAdmin']
   },
   {
     component: CNavItem,
@@ -56,6 +57,7 @@ const _nav = [
     name: 'Reports',
     to: '/report',
     icon: <CIcon icon={cilSpreadsheet} customClassName="nav-icon" />,
+    usertype:['Admin','Manager','SuperAdmin']
   },
   {
     component: CNavItem,
@@ -95,20 +97,20 @@ const _nav = [
   //       name: 'Breadcrumb',
   //       to: '/base/breadcrumbs',
   //     },
-      // {
-      //   component: CNavItem,
-      //   name: (
-      //     <React.Fragment>
-      //       {'Calendar'}
-      //       <CIcon icon={cilExternalLink} size="sm" className="ms-2" />
-      //     </React.Fragment>
-      //   ),
-      //   href: 'https://coreui.io/react/docs/components/calendar/',
-      //   badge: {
-      //     color: 'danger',
-      //     text: 'PRO',
-      //   },
-      // },
+  //     {
+  //       component: CNavItem,
+  //       name: (
+  //         <React.Fragment>
+  //           {'Calendar'}
+  //           <CIcon icon={cilExternalLink} size="sm" className="ms-2" />
+  //         </React.Fragment>
+  //       ),
+  //       href: 'https://coreui.io/react/docs/components/calendar/',
+  //       badge: {
+  //         color: 'danger',
+  //         text: 'PRO',
+  //       },
+  //     },
   //     {
   //       component: CNavItem,
   //       name: 'Cards',

@@ -108,7 +108,7 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
         )}
       </AnimatePresence>
 
-      <ToastContainer />
+      {/* <ToastContainer /> */}
 
       <div
         className="card shadow-lg rounded-4 border-0 h-100 overflow-hidden"
@@ -140,13 +140,13 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
           <div className="d-flex align-items-center gap-2 flex-wrap">
             {(userType === 'SuperAdmin' || userType === 'Admin') && (
               <>
-                <button
+                {/* <button
                   type="button"
                   className="btn btn-sm btn-light"
                   onClick={() => setShowAssignModal(true)}
                 >
                   Assign To
-                </button>
+                </button> */}
                 <FaEdit
                   title="Edit"
                   color="black"
@@ -182,9 +182,9 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
               ['Email:', <a href={`mailto:${data.email}`} className="text-primary text-decoration-none">{data.email || 'N/A'}</a>],
               ['Mobile:', data.mobile || 'N/A'],
               ['Designation:', data.designation || 'N/A'],
-              ['Department:', data.department || 'N/A'],
+              ['Team:', data.department || 'N/A'],
               ['Reporting To:', data.reportingTo?.toUpperCase() || 'N/A'],
-              ['Assigned To:', data.assignedTo?.toUpperCase() || 'N/A']
+              // ['Assigned To:', data.assignedTo?.toUpperCase() || 'N/A']
             ].map(([label, value], i) => (
               <div key={i} className="d-flex flex-column flex-md-row justify-content-between mb-2 text-break">
                 <strong>{label}</strong>

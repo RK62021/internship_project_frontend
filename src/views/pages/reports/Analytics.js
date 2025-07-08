@@ -17,7 +17,7 @@ import axios from 'axios'
 import ApiUrl from '../../../services/apiheaders'
 import { toast } from 'react-toastify'
 
-// Register all required controllers and elements
+// Register chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -45,18 +45,20 @@ const Analytics = () => {
   const [trendData, setTrendData] = useState(null)
   const [teamData, setTeamData] = useState(null)
 
+  const [loading, setLoading] = useState(true)
+  const [hasRendered, setHasRendered] = useState({
+    pie: false,
+    line: false,
+    bar: false,
+  })
+
   useEffect(() => {
     fetchCharts()
   }, [])
 
-  useEffect(() => {
-    if (statusData) renderPieChart()
-    if (trendData) renderLineChart()
-    if (teamData) renderBarChart()
-  }, [statusData, trendData, teamData])
-
   const fetchCharts = async () => {
     try {
+      setLoading(true)
       const [statusRes, trendRes, teamRes] = await Promise.all([
         axios.get(`${ApiUrl.User}/status-summary`),
         axios.get(`${ApiUrl.User}/task-trend?range=7d`),
@@ -67,13 +69,21 @@ const Analytics = () => {
       if (trendRes.data.statusCode === 200) setTrendData(trendRes.data.data)
       if (teamRes.data.statusCode === 200) setTeamData(teamRes.data.data)
     } catch (err) {
-      toast.error('Failed to fetch analytics data')
       console.error(err)
+      toast.error('Failed to fetch analytics data')
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    if (statusData && !hasRendered.pie) renderPieChart()
+    if (trendData && !hasRendered.line) renderLineChart()
+    if (teamData && !hasRendered.bar) renderBarChart()
+  }, [statusData, trendData, teamData])
+
   const renderPieChart = () => {
-    if (pieChart.current) pieChart.current.destroy()
+    if (!pieRef.current || pieChart.current) return
 
     const labels = Object.keys(statusData)
     const values = Object.values(statusData)
@@ -107,10 +117,12 @@ const Analytics = () => {
         }
       }
     })
+
+    setHasRendered(prev => ({ ...prev, pie: true }))
   }
 
   const renderLineChart = () => {
-    if (lineChart.current) lineChart.current.destroy()
+    if (!lineRef.current || lineChart.current) return
 
     lineChart.current = new ChartJS(lineRef.current, {
       type: 'line',
@@ -135,13 +147,14 @@ const Analytics = () => {
         }
       }
     })
+
+    setHasRendered(prev => ({ ...prev, line: true }))
   }
 
   const renderBarChart = () => {
-    if (barChart.current) barChart.current.destroy()
+    if (!barRef.current || barChart.current) return
 
     const labels = teamData.map(t => t.teamName)
-
     const allStatuses = ['Completed', 'In Progress', 'Not Started', 'Discarded', 'OverDue']
     const statusColors = {
       'Completed': '#28a745',
@@ -159,10 +172,7 @@ const Analytics = () => {
 
     barChart.current = new ChartJS(barRef.current, {
       type: 'bar',
-      data: {
-        labels,
-        datasets
-      },
+      data: { labels, datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -174,43 +184,61 @@ const Analytics = () => {
         }
       }
     })
+
+    setHasRendered(prev => ({ ...prev, bar: true }))
   }
+
+  useEffect(() => {
+    return () => {
+      pieChart.current?.destroy()
+      lineChart.current?.destroy()
+      barChart.current?.destroy()
+    }
+  }, [])
 
   return (
     <div className="py-4 px-3">
       <h4 className="fw-bold mb-4 text-center">📊 Task Analytics Dashboard</h4>
 
-      <div className="row g-4">
-        {/* Pie Chart */}
-        <div className="col-md-6 col-sm-12">
-          <div className="border rounded p-3 bg-white shadow-sm h-100">
-            <h6 className="text-center mb-3">Task Status Overview</h6>
-            <div style={{ height: '300px' }}>
-              <canvas ref={pieRef}></canvas>
-            </div>
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
           </div>
         </div>
+      ) : (
+        <div className="row g-4">
+          {/* Pie Chart */}
+          <div className="col-md-6 col-sm-12">
+            <div className="border rounded p-3 bg-white shadow-sm h-100">
+              <h6 className="text-center mb-3">Task Status Overview</h6>
+              <div style={{ height: '300px' }}>
+                <canvas ref={pieRef}></canvas>
+              </div>
+            </div>
+          </div>
 
-        {/* Line Chart */}
-        <div className="col-md-6 col-sm-12">
-          <div className="border rounded p-3 bg-white shadow-sm h-100">
-            <h6 className="text-center mb-3">Tasks Created (Last 7 Days)</h6>
-            <div style={{ height: '300px' }}>
-              <canvas ref={lineRef}></canvas>
+          {/* Line Chart */}
+          <div className="col-md-6 col-sm-12">
+            <div className="border rounded p-3 bg-white shadow-sm h-100">
+              <h6 className="text-center mb-3">Tasks Created (Last 7 Days)</h6>
+              <div style={{ height: '300px' }}>
+                <canvas ref={lineRef}></canvas>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bar Chart */}
-        <div className="col-12">
-          <div className="border rounded p-3 bg-white shadow-sm">
-            <h6 className="text-center mb-3">Team-wise Task Completion</h6>
-            <div style={{ height: '400px' }}>
-              <canvas ref={barRef}></canvas>
+          {/* Bar Chart */}
+          <div className="col-12">
+            <div className="border rounded p-3 bg-white shadow-sm">
+              <h6 className="text-center mb-3">Team-wise Task Completion</h6>
+              <div style={{ height: '400px' }}>
+                <canvas ref={barRef}></canvas>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

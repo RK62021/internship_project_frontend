@@ -36,7 +36,7 @@ const TaskDetailsPage = () => {
   return (
     <>
     <div style={{ padding: '20px' , bagroundColor: '#f8f9fa'}}>
-    <ToastContainer/>
+    <ToastContainer   />
     <MultiSelectTabs taskId={id} data={TaskDetail?.task || []} notesData={TaskDetail?.notes || null} update={()=>{setisUpdated((prev)=>!prev);TaskUpdatedMessege()}}/>
     </div>
     </>

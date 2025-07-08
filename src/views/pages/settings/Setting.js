@@ -264,7 +264,7 @@ const Settings = () => {
 
         <div className="col-md-6 mb-4">
           <div className="card p-4 shadow-sm mb-4">
-            <h3>Notification Settings</h3>
+            <h3>Notification Settings(Under Process)</h3>
             <p>Manage how you receive notifications</p>
             <div className="form-check form-switch d-flex justify-content-between align-items-center mb-3">
               <label className="form-check-label">Email Notifications</label>

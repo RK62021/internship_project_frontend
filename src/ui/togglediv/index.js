@@ -1,6 +1,6 @@
 import CIcon from '@coreui/icons-react'
 import axios from 'axios'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../buttons'
 import { cilPlus } from '@coreui/icons'
 import { FaTrash } from 'react-icons/fa'
@@ -9,7 +9,7 @@ import ApiUrl from '../../services/apiheaders'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
 
-const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam }) => {
+const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam, refreshAllUsers }) => {
   const user_id = useSelector((state) => state.userId)
   const [userList, setUserList] = useState([])
   const [selectedUser, setSelectedUser] = useState('')
@@ -17,12 +17,11 @@ const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam 
 
   // ⏺️ Filter out users already in team
   useEffect(() => {
-   if (allUsers?.length >= 0 && TeamMembers !== undefined) {
-  const memberIds = new Set((TeamMembers || []).map((member) => member._id))
-  const availableUsers = allUsers.filter((user) => !memberIds.has(user._id))
-  setUserList(availableUsers)
-}
-
+    if (allUsers?.length >= 0 && TeamMembers !== undefined) {
+      const memberIds = new Set((TeamMembers || []).map((member) => member._id))
+      const availableUsers = allUsers.filter((user) => !memberIds.has(user._id))
+      setUserList(availableUsers)
+    }
   }, [allUsers, TeamMembers])
 
   const handleAddTeamMember = async () => {
@@ -42,7 +41,8 @@ const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam 
         toast.success('User added to team')
         setIsUserPopup(false)
         setSelectedUser('')
-       await refreshTeam();
+        await refreshTeam()
+        await refreshAllUsers()
       } else {
         toast.error('Failed to add user')
       }
@@ -65,7 +65,8 @@ const ToggleDiv = ({ TeamMembers, data, isOpen, onToggle, allUsers, refreshTeam 
 
       if (response.status === 200 || response.data.success === true) {
         toast.success('User removed from team')
-        await refreshTeam();
+        await refreshTeam()
+        await refreshAllUsers()
       } else {
         toast.error('Failed to remove user')
       }

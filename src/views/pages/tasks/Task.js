@@ -34,7 +34,7 @@ const Task = () => {
   const [showDeletePopup, setShowDeletePopup] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [active, setActive] = useState("") // <- Default: No filter
+  const [active, setActive] = useState('all') // <- Default: All Tasks
   const [deleteTaskId, setDeleteTaskId] = useState('')
   const [showEditTask, setShowEditTask] = useState(false)
 
@@ -57,21 +57,31 @@ const Task = () => {
 
   const fetchTask = async () => {
     setIsLoading(true)
-    const res = await axios.get(`${ApiUrl.User}/task?userId=${user_id}&userType=${userType}&assignToId=null`)
-    if (res.status === 200) {
-      setApiTask(res.data.data || [])
+    try {
+      const res = await axios.get(`${ApiUrl.User}/task?userId=${user_id}&userType=${userType}&assignToId=null`)
+      if (res.status === 200) {
+        setApiTask(res.data.data || [])
+      }
+    } catch (err) {
+      console.error('Error fetching tasks:', err)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const editTaskFun = async (id) => {
     setIsLoading(true)
-    const res = await axios.get(`${ApiUrl.User}/task/${id}`)
-    if (res.status === 200) {
-      setSingleTask(res.data.data)
-      setShowEditTask(true)
+    try {
+      const res = await axios.get(`${ApiUrl.User}/task/${id}`)
+      if (res.status === 200) {
+        setSingleTask(res.data.data)
+        setShowEditTask(true)
+      }
+    } catch (error) {
+      console.error('Edit fetch failed:', error)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -93,26 +103,28 @@ const Task = () => {
 
     let matchesFilter = true
 
-    if (createdDate) {
-      const taskDate = new Date(createdDate)
-      taskDate.setHours(0, 0, 0, 0)
+    if (active && active !== 'all') {
+      if (createdDate) {
+        const taskDate = new Date(createdDate)
+        taskDate.setHours(0, 0, 0, 0)
 
-      if (active === 'today') {
-        matchesFilter = taskDate.getTime() === today.getTime()
-      } else if (active === 'yesterday') {
-        const yesterday = new Date(today)
-        yesterday.setDate(today.getDate() - 1)
-        matchesFilter = taskDate.getTime() === yesterday.getTime()
-      } else if (active === 'week') {
-        const weekStart = new Date(today)
-        weekStart.setDate(today.getDate() - today.getDay()) // Sunday
-        const weekEnd = new Date(weekStart)
-        weekEnd.setDate(weekStart.getDate() + 6)
-        matchesFilter = taskDate >= weekStart && taskDate <= weekEnd
-      } else if (active === 'month') {
-        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-        matchesFilter = taskDate >= monthStart && taskDate <= monthEnd
+        if (active === 'today') {
+          matchesFilter = taskDate.getTime() === today.getTime()
+        } else if (active === 'yesterday') {
+          const yesterday = new Date(today)
+          yesterday.setDate(today.getDate() - 1)
+          matchesFilter = taskDate.getTime() === yesterday.getTime()
+        } else if (active === 'week') {
+          const weekStart = new Date(today)
+          weekStart.setDate(today.getDate() - today.getDay())
+          const weekEnd = new Date(weekStart)
+          weekEnd.setDate(weekStart.getDate() + 6)
+          matchesFilter = taskDate >= weekStart && taskDate <= weekEnd
+        } else if (active === 'month') {
+          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+          const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+          matchesFilter = taskDate >= monthStart && taskDate <= monthEnd
+        }
       }
     }
 
@@ -139,7 +151,7 @@ const Task = () => {
             </div>
             <div className="d-flex gap-2">
               <FilterButton
-                filterData={['today', 'yesterday', 'week', 'month']}
+                filterData={['all', 'today', 'yesterday', 'week', 'month']}
                 active={active}
                 onFilterChange={(val) => setActive(val)}
               />

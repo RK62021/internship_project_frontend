@@ -20,7 +20,6 @@ const Team = () => {
   const [teamUsersMap, setTeamUsersMap] = useState({})
   const [teamLoadingMap, setTeamLoadingMap] = useState({})
 
-  // Fetch all users
   const fetchAllUsers = async () => {
     try {
       const response = await axios.get(`${ApiUrl.User}/all`)
@@ -32,7 +31,6 @@ const Team = () => {
     }
   }
 
-  // Fetch teams and open the first toggle by default
   const fetchTeams = async () => {
     setisLoading(true)
     try {
@@ -44,7 +42,7 @@ const Team = () => {
         if (teamList.length > 0) {
           const firstTeamId = teamList[0]._id
           setOpenIndex(0)
-          await handleToggle(0, firstTeamId) // open and fetch data
+          await handleToggle(0, firstTeamId)
         }
       }
     } catch (err) {
@@ -54,7 +52,6 @@ const Team = () => {
     }
   }
 
-  // Handle toggle click with lazy load
   const handleToggle = async (idx, teamId) => {
     if (!teamUsersMap[teamId]) {
       setTeamLoadingMap(prev => ({ ...prev, [teamId]: true }))
@@ -73,7 +70,6 @@ const Team = () => {
     setOpenIndex(prev => (prev === idx ? null : idx))
   }
 
-  // Refresh members of a single team
   const refreshTeamUsers = async (teamId) => {
     const res = await axios.get(`${ApiUrl.Team}/teamusers?deptId=${teamId}`)
     setTeamUsersMap((prev) => ({
@@ -87,7 +83,6 @@ const Team = () => {
     fetchTeams()
   }, [])
 
-  // Handle team creation
   const handleAddTeam = async (e) => {
     e.preventDefault()
     const userId = reduxUserId || JSON.parse(localStorage.getItem('user'))?.[0]?.userId
@@ -105,6 +100,7 @@ const Team = () => {
         setisOpenAddTeam(false)
         SetTeamName('')
         await fetchTeams()
+        await fetchAllUsers()
       } else {
         toast.error(res.data.message || 'Something went wrong...')
       }
@@ -113,6 +109,10 @@ const Team = () => {
     } finally {
       setisLoading(false)
     }
+  }
+
+  const refreshAllUsers = async () => {
+    await fetchAllUsers()
   }
 
   return (
@@ -143,6 +143,7 @@ const Team = () => {
                 TeamMembers={teamUsersMap[team._id] || []}
                 allUsers={allUsers}
                 refreshTeam={() => refreshTeamUsers(team._id)}
+                refreshAllUsers={refreshAllUsers}
                 isTeamLoading={teamLoadingMap[team._id] || false}
               />
             </div>

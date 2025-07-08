@@ -112,7 +112,8 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
       priority: UpdatedTask.priority || 'Medium',
     }
     const Response = await axios.put(`${ApiUrl.User}/task`, UpdatedTasks)
-    if (Response.data.statusCode === 200) navigate('/task')
+    if (Response.data.statusCode === 200 || Response.data.success ===true) navigate('/task')
+      update()
   }
 
   const AddNotesfun = async () => {
@@ -123,7 +124,8 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
       if (Response.data.statusCode === 200) {
         setOpenNotesPopup(false)
         toast.success('Notes added...')
-        await fetchnotesList()
+        await fetchnotesList() 
+        // update()
         setNotes('')
       }
     } catch {
@@ -197,7 +199,11 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
         </button>
       </div>
 
-      <div key={selectedTabs} className="tab-content card p-4 shadow-sm fade-in" style={{ minHeight: '400px' }}>
+      <div
+        key={selectedTabs}
+        className="tab-content card p-4 shadow-sm fade-in"
+        style={{ minHeight: '400px' }}
+      >
         {selectedTabs === 1 && (
           <>
             <div className="row mb-3">
