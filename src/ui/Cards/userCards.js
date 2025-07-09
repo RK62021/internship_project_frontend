@@ -12,6 +12,7 @@ import PopupLayout from '../../layout/PopupLayout.js'
 import 'react-toastify/dist/ReactToastify.css'
 
 const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
+  // console.log('UserCard data:', data)
   const [isDelete, setIsDelete] = useState(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState('')
@@ -184,6 +185,7 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
               ['Designation:', data.designation || 'N/A'],
               ['Team:', data.department || 'N/A'],
               ['Reporting To:', data.reportingTo?.toUpperCase() || 'N/A'],
+              ['Department:', data.departmentMain || 'N/A'],
               // ['Assigned To:', data.assignedTo?.toUpperCase() || 'N/A']
             ].map(([label, value], i) => (
               <div key={i} className="d-flex flex-column flex-md-row justify-content-between mb-2 text-break">

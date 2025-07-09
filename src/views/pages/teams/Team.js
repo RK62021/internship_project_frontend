@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import ToggleDiv from '../../../ui/togglediv'
 import PopupLayout from '../../../layout/PopupLayout.js'
-import { toast } from 'react-toastify'
+import { toast, ToastContainer } from 'react-toastify'
 import ApiUrl from '../../../services/apiheaders.js'
 import Loader from '../../../ui/Loader/index.js'
 import { useSelector } from 'react-redux'
@@ -117,6 +117,7 @@ const Team = () => {
 
   return (
     <>
+    <ToastContainer/>
       {isLoading && <Loader />}
 
       <div className="container py-4">

@@ -8,7 +8,7 @@ import {
   CRow,
   CCol,
 } from '@coreui/react'
-import { toast } from 'react-toastify'
+import { toast, ToastContainer } from 'react-toastify'
 import axios from 'axios'
 import ApiUrl from '../../../services/apiheaders'
 import ExcelJS from 'exceljs'
@@ -162,6 +162,8 @@ const DumpReport = () => {
   }
 
   return (
+    <>
+    <ToastContainer/>
     <div className="py-4">
       {/* Header and Buttons */}
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -280,6 +282,7 @@ const DumpReport = () => {
         <div className="text-muted mt-4">No dump report data to display.</div>
       )}
     </div>
+    </>
   )
 }
 
