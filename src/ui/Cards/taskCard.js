@@ -132,13 +132,13 @@ const TaskCard = ({
         </CCardBody>
       </CCard>
 
-      <style jsx>{`
+      {/* <style jsx>{`
         .card-hover:hover {
           transform: scale(1.01);
           transition: 0.3s ease-in-out;
           box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
         }
-      `}</style>
+      `}</style> */}
     </>
   )
 }

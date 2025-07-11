@@ -10,11 +10,7 @@ import {
   CDropdownMenu,
   CDropdownToggle,
 } from '@coreui/react'
-import {
-  cilBell,
-  cilEnvelopeOpen,
-  cilLockLocked,
-} from '@coreui/icons'
+import { cilBell, cilEnvelopeOpen, cilLockLocked } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 
 import { useNavigate } from 'react-router-dom'
@@ -42,7 +38,7 @@ const AppHeaderDropdown = () => {
   const [notifications, setNotifications] = useState([])
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false)
 
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   // 🔁 Fetch Notifications
   const fetchNotifications = async () => {
@@ -50,7 +46,7 @@ const AppHeaderDropdown = () => {
       const res = await axios.get(`${ApiUrl.User}/notifications?userId=${UserId}`)
       if (res.data.success) setNotifications(res.data.notifications)
     } catch (err) {
-      toast.error("Failed to load notifications")
+      toast.error('Failed to load notifications')
     }
   }
 
@@ -64,30 +60,32 @@ const AppHeaderDropdown = () => {
       if (res.data.success) {
         setNotifications((prev) =>
           prev.map((n) =>
-            n._id === notificationId ? { ...n, isRead: true, readDate: new Date() } : n
-          )
+            n._id === notificationId ? { ...n, isRead: true, readDate: new Date() } : n,
+          ),
         )
       }
     } catch {
-      toast.error("Failed to mark as read")
+      toast.error('Failed to mark as read')
     }
   }
 
   const markAllAsRead = async () => {
     try {
-      const res = await axios.post(`${ApiUrl.User}/notifications/mark-all-as-read`, { userId: UserId })
+      const res = await axios.post(`${ApiUrl.User}/notifications/mark-all-as-read`, {
+        userId: UserId,
+      })
       if (res.data.success) {
-        toast.success("All marked as read")
+        toast.success('All marked as read')
         fetchNotifications()
       }
     } catch {
-      toast.error("Failed to mark all as read")
+      toast.error('Failed to mark all as read')
     }
   }
 
   const handleClearNotifications = () => {
     setNotifications([])
-    toast.info("Cleared locally")
+    toast.info('Cleared locally')
   }
 
   const handleLogout = () => logout({ dispatch, navigate, toast })
@@ -131,14 +129,28 @@ const AppHeaderDropdown = () => {
             <form>
               <div className="mb-3">
                 <label className="changepassword-label">New Password</label>
-                <input type="password" className="form-control task-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input
+                  type="password"
+                  className="form-control task-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <div className="mb-3">
                 <label className="changepassword-label">Confirm Password</label>
-                <input type="password" className="form-control task-input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                <input
+                  type="password"
+                  className="form-control task-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
                 {error && <div className="text-danger mt-1">{error}</div>}
               </div>
-              <button type="button" className="changepassword-button w-100 mt-3" onClick={handleSubmitForm}>
+              <button
+                type="button"
+                className="changepassword-button w-100 mt-3"
+                onClick={handleSubmitForm}
+              >
                 Change Password
               </button>
             </form>
@@ -147,16 +159,29 @@ const AppHeaderDropdown = () => {
       )}
 
       {/* 🔔 Notification Dropdown */}
-      <CDropdown className="me-3" variant="nav-item" show={showNotificationDropdown} onShow={() => setShowNotificationDropdown(true)} onHide={() => setShowNotificationDropdown(false)}>
+      <CDropdown
+        className="me-3"
+        variant="nav-item"
+        onShow={() => setShowNotificationDropdown(true)}
+        onHide={() => setShowNotificationDropdown(false)}
+      >
         <CDropdownToggle className="nav-link py-0" caret={false}>
           <CIcon icon={cilBell} size="lg" />
           {unreadCount > 0 && (
-            <CBadge color="danger" shape="rounded-pill" className="position-absolute top-0 start-100 translate-middle">
+            <CBadge
+              color="danger"
+              shape="rounded-pill"
+              className="position-absolute top-0 start-100 translate-middle"
+            >
               {unreadCount}
             </CBadge>
           )}
         </CDropdownToggle>
-        <CDropdownMenu className="pt-0 dropdown-menu-end" placement="bottom-end" style={{ minWidth: '300px', maxHeight: '300px', overflowY: 'auto' }}>
+        <CDropdownMenu
+          className="pt-0 dropdown-menu-end"
+          placement="bottom-end"
+          style={{ minWidth: '300px', maxHeight: '300px', overflowY: 'auto' }}
+        >
           <CDropdownHeader className="bg-body-secondary fw-semibold py-2 px-3">
             🔔 Notifications ({notifications.length})
           </CDropdownHeader>
@@ -177,32 +202,35 @@ const AppHeaderDropdown = () => {
           )}
           <CDropdownDivider />
           <div className="d-grid gap-2 px-3 pb-2">
-  <CButton
-    color="success"
-    variant="outline"
-    className="fw-semibold"
-    size="sm"
-    onClick={markAllAsRead}
-  >
-    ✅ Mark All As Read
-  </CButton>
+            <CButton
+              color="success"
+              variant="outline"
+              className="fw-semibold"
+              size="sm"
+              onClick={markAllAsRead}
+            >
+              ✅ Mark All As Read
+            </CButton>
 
-  <CButton
-    color="danger"
-    variant="outline"
-    className="fw-semibold"
-    size="sm"
-    onClick={handleClearNotifications}
-  >
-    🗑️ Clear Local
-  </CButton>
-</div>
+            <CButton
+              color="danger"
+              variant="outline"
+              className="fw-semibold"
+              size="sm"
+              onClick={handleClearNotifications}
+            >
+              🗑️ Clear Local
+            </CButton>
+          </div>
         </CDropdownMenu>
       </CDropdown>
 
       {/* 👤 User Menu */}
       <CDropdown variant="nav-item">
-        <CDropdownToggle className="py-0 pe-0 d-flex flex-row gap-2 align-items-center" caret={false}>
+        <CDropdownToggle
+          className="py-0 pe-0 d-flex flex-row gap-2 align-items-center"
+          caret={false}
+        >
           <CAvatar src="https://i.pravatar.cc/150?img=2" size="sm" />
           <div style={{ marginTop: '2px' }}>
             <strong className="fw-semibold">{UserName}</strong>

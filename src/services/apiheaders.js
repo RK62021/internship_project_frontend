@@ -1,5 +1,5 @@
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
-console.log(apiUrl);
+// console.log(apiUrl);
 const ApiUrl={
    Login: `${apiUrl}/api/v1/auth/login`,
    Register: `${apiUrl}/api/v1/auth/register`,

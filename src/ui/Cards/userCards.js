@@ -43,12 +43,15 @@ const UserCard = ({ ccolor, fcolor, isActive, data, render, onEdit }) => {
   const handleConfirmDelete = async (id, user_id) => {
     try {
       const response = await axios.delete(`${ApiUrl.User}?id=${id}&user_id=${user_id}`)
-      if (response.data.statusCode === 200) {
+      if (response.data.statusCode === 200  || response.data.success) {
         toast.warn(response.data.message)
         render()
+        
       }
     } catch {
       toast.error('Something went wrong.')
+    } finally {
+      setIsDelete(false)
     }
   }
 

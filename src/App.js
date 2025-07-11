@@ -35,8 +35,8 @@ const App = () => {
     setColorMode(storedTheme)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  console.log(GetLocalStorage('isLogin'))
-  console.log(typeof(GetLocalStorage('isLogin')))
+  // console.log(GetLocalStorage('isLogin'))
+  // console.log(typeof(GetLocalStorage('isLogin')))
 
   return (
     <BrowserRouter>

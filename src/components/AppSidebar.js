@@ -27,7 +27,7 @@ const AppSidebar = () => {
   const dispatch = useDispatch()
   const storedUser = useSelector((state) => state.userType)
   const Username = useSelector((state) => state.userName)
-  console.log('stored theme in login----------', storedUser)
+  // console.log('stored theme in login----------', storedUser)
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
 

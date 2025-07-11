@@ -26,7 +26,7 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
   const fetchUser = async () => {
     try {
       const currentUserId = GetLocalStorage('user')?.[0]?.userId
-      const response = await axios.get(`${ApiUrl.User}/userlistcustom/?userId=${currentUserId}`)
+      const response = await axios.get(`${ApiUrl.User}/userlist`)
       setUserslist(response?.data?.data || [])
     } catch (error) {
       console.error('Failed to fetch users:', error)
@@ -148,7 +148,7 @@ const AddTaskForm = ({ isTaskAdded, closePopup, data, name, formName, userId }) 
                     <option value="">Please Select</option>
                     {Userslist.map((user, idx) => (
                       <option key={idx} value={user.userId}>
-                        {`${user.username} - ${user.designation} (${user.department})`}
+                        {`${user.fullName} - ${user.designation} (${user.department})`}
                       </option>
                     ))}
                   </select>

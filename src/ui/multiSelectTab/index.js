@@ -20,6 +20,7 @@ const tabs = [
 ]
 
 const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
+  console.log('data in MultiSelectTabs', data)
   const navigate = useNavigate()
   const UserId = useSelector((state) => state.userId)
 
@@ -247,7 +248,7 @@ const MultiSelectTabs = ({ data, notesData, update, taskId }) => {
                 >
                   {UserOptioList.map((u) => (
                     <option key={u.userId} value={u.userId}>
-                      {u.username}
+                      {u.username}-({u.designation})-({u.department})
                     </option>
                   ))}
                 </select>
